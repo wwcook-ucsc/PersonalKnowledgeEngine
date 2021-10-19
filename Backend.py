@@ -35,3 +35,19 @@ def search_file_for_string(path: str, key: str) -> list:
             if key in line:  # if this line contains the key at least once
                 key_instances.append((i+1, line))
     return key_instances
+
+def search_files_for_string(paths: list, key: str) -> list:
+    """
+    Search each line of a multiple files for a string key
+    :param paths: a list of the relative or absolute paths to the files to be searched
+    :param key: The string to search through the files for
+    :return: [ (path to file#1, [(line# of key occurrence #1, full line of key occurrence #1), ...] ) ...]
+            ^ a list of tuples: file path, and the list of occurrences in file path
+    """
+    file_hits = [] 
+
+    for file in paths:
+        output_instances = search_file_for_string(file, key)
+        if output_instances:
+            file_hits.append((file, output_instances))
+    return file_hits
