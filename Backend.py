@@ -9,6 +9,7 @@ GUI Events call functions housed in this file; serves "GUI_Master_Script"
 
 
 # IMPORTS (remember to list installed packages in "requirements.txt")
+from pathlib import Path
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
@@ -50,4 +51,98 @@ def search_files_for_string(paths: list, key: str) -> list:
         output_instances = search_file_for_string(file, key)
         if output_instances:
             file_hits.append((file, output_instances))
+    return file_hits
+
+def foreach_file(func,
+                 include_paths: list,
+                 include_exts: list = None,
+                 exclude_paths: list = None) -> None:
+    """
+    Calls the given function on every file that matches the given criteria.
+    :param func: function to call. Receives only the file path as argument
+    :param include_paths: list of directories/files to include
+    :param include_exts: list of file extensions to include
+    :param exclude_paths: list of directories/files to exclude
+
+    Paths in include_paths will all be included regardless of exclude_paths
+    and include_exts.
+    """
+    if include_exts is None:
+        include_exts = []
+    if exclude_paths is None:
+        exclude_paths = []
+
+    include_paths = [Path(path).absolute() for path in include_paths]
+    exclude_paths = [Path(path).absolute() for path in exclude_paths]
+
+    print('include_paths:', include_paths)
+    print('exclude_paths:', exclude_paths)
+
+    for path in include_paths:
+        if not path.exists():
+            raise FileNotFoundError(str(path))
+    for path in exclude_paths:
+        if not path.exists():
+            raise FileNotFoundError(str(path))
+
+    def is_excluded(path: Path, exclude_paths: list):
+        for exclude_path in exclude_paths:
+            if exclude_path in path.parents or exclude_path == path:
+                return True
+        return False
+
+    def is_extension_included(path: Path):
+        if include_exts is not None:
+            if path.suffix in include_exts:
+                return True
+        return False
+
+    def rec_helper(path: Path, exclude_paths: list):
+        if is_excluded(path, exclude_paths):
+            return
+        if path.is_dir():
+            for subpath in path.glob('*'):
+                sub_exclude_paths = [
+                    p for p in exclude_paths if path in p.parents
+                ]
+                rec_helper(subpath, sub_exclude_paths)
+        else:
+            if is_extension_included(path):
+                func(str(path))
+
+    for path in include_paths:
+        if path.is_dir():
+            # Narrow the list of excluded paths to only those that are inside
+            # the current directory path
+            sub_exclude_paths = [
+                p for p in exclude_paths if path in p.parents
+            ]
+            rec_helper(path, sub_exclude_paths)
+        else:
+            func(str(path))
+
+def search_for_string(key: str,
+                      include_paths: list,
+                      include_exts: list = None,
+                      exclude_paths: list = None) -> list:
+    """
+    Search each line of every matching file for a string key
+    :param key: the string to search through the files for
+    :param include_paths: a list of paths of directories/files to be included
+    :param include_exts: a list of file extensions to include
+    :param exclude_paths: a list of path of directories/files to be excluded
+    """
+    file_hits = []
+
+    def search_file_func(path: str):
+        nonlocal file_hits
+        output_instances = search_file_for_string(path, key)
+        if output_instances:
+            file_hits.append((path, output_instances))
+
+    foreach_file(search_file_func,
+                 include_paths,
+                 include_exts,
+                 exclude_paths)
+
     return file_hits
