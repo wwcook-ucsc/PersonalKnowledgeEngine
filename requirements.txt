@@ -1,0 +1,7 @@
+# GUI framework
+pyqt5
+
+# code linters:
+bandit
+pylama
+mypy
