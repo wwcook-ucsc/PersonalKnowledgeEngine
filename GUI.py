@@ -6,9 +6,9 @@ References:
 https://pythonprogramminglanguage.com/pyqt/
 """
 
-
+import sys
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit
 from PyQt5.QtCore import QSize
 
 
@@ -47,6 +47,20 @@ class SearchBarWidget(QWidget):
         title.setAlignment(QtCore.Qt.AlignCenter)
         gridLayout.addWidget(title, 0, 0)
 
+        """Adding text input"""
+        self.setMinimumSize(QSize(300,270))    
+        self.setWindowTitle("PKE Search Engine") 
+        self.nameLabel = QLabel(self)
+        # self.nameLabel.setText('Search Term')
+        self.line = QLineEdit(self)
+
+        self.line.move(100, 20)
+        self.line.resize(200, 32)
+        self.nameLabel.move(20, 20)
+
+        pybutton = QPushButton('Start Search/Cancel', self)
+        pybutton.resize(180,32)
+        pybutton.move(320,15)
 
 class SearchResultsWidget(QWidget):
 
@@ -84,3 +98,4 @@ class SearchResultEntryWidget(QWidget):
         title = QLabel('This is a single search result', self)
         title.setAlignment(QtCore.Qt.AlignCenter)
         gridLayout.addWidget(title, 0, 0)
+
