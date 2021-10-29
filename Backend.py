@@ -10,6 +10,7 @@ GUI Events call functions housed in this file; serves "GUI_Master_Script"
 
 # IMPORTS (remember to list installed packages in "requirements.txt")
 from pathlib import Path
+import ntpath
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
@@ -75,8 +76,8 @@ def foreach_file(func,
     include_paths = [Path(path).absolute() for path in include_paths]
     exclude_paths = [Path(path).absolute() for path in exclude_paths]
 
-    print('include_paths:', include_paths)
-    print('exclude_paths:', exclude_paths)
+    # print('include_paths:', include_paths)
+    # print('exclude_paths:', exclude_paths)
 
     for path in include_paths:
         if not path.exists():
@@ -146,3 +147,19 @@ def search_for_string(key: str,
                  exclude_paths)
 
     return file_hits
+
+def convert_readable(file_hits):
+    """
+    Returns tuple of: list of file names, list of line where key was found
+    File names will be repeated in case of multiple hits in a file
+    :file_hits: output from search_for_string()
+    """
+    file_names = []
+    line_hits = []
+
+    for file_output in file_hits:
+        for line_info in file_output[1]:
+            line_hits.append(line_info[1])
+            file_names.append(ntpath.basename(file_output[0]))
+
+    return((file_names,line_hits))
