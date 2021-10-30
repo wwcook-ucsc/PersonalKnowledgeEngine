@@ -8,7 +8,7 @@ https://pythonprogramminglanguage.com/pyqt/
 
 import sys
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
 
 
@@ -29,9 +29,19 @@ class PkeAppWindow(QMainWindow):
         searchBar = SearchBarWidget()
         gridLayout.addWidget(searchBar, 0, 0)
 
+        """Test list inputs for the search results"""
+        testlist = []
+        testlist2 = []
+        for x in range(20):
+            testlist.append("test filename")
+            testlist2.append("test other column")
+
         searchResults = SearchResultsWidget()
         gridLayout.addWidget(searchResults, 1, 0)
-
+        
+        """Adding test results to search results box"""
+        searchResults.addResults(testlist, testlist2)
+        searchResults.addOneResult("Test File", "Test Preview")
 
 class SearchBarWidget(QWidget):
 
@@ -62,8 +72,11 @@ class SearchBarWidget(QWidget):
         pybutton.resize(180,32)
         pybutton.move(320,15)
 
+
 class SearchResultsWidget(QWidget):
 
+    """Initializes the search results box. 
+    The box is scrollable and size adjustable."""
     def __init__(self):
         """PyQt widget containing the list of search results
 
@@ -72,12 +85,38 @@ class SearchResultsWidget(QWidget):
         """
         QWidget.__init__(self)
 
-        gridLayout = QGridLayout(self)
-        self.setLayout(gridLayout)
+        self.fileList = []
+        self.filePreview = []
 
-        title = QLabel('These is the search results widget', self)
-        title.setAlignment(QtCore.Qt.AlignCenter)
-        gridLayout.addWidget(title, 0, 0)
+        self.rowLayout = QFormLayout()
+        groupBox = QGroupBox("Search Results")
+
+        groupBox.setLayout(self.rowLayout)
+        scrollBox = QScrollArea()
+        scrollBox.setWidgetResizable(True)
+        scrollBox.setWidget(groupBox)
+
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addWidget(scrollBox)
+
+        self.setLayout(verticalLayout)
+
+    """Takes as input two lists and adds them to the results box.
+    The first list is a column of button widgets
+    The second list is a column of labels"""
+    def addResults(self, fileNames, previewSearch):
+        for fileIndex in range(len(fileNames)):
+            self.fileList.append(QPushButton(fileNames[fileIndex]))
+            self.filePreview.append(QLabel(previewSearch[fileIndex]))
+            self.rowLayout.addRow(self.fileList[fileIndex], self.filePreview[fileIndex])
+    
+    """Takes as input two strings and adds the to results box
+    The first string is added as a button and the second string
+    is added as a label"""
+    def addOneResult(self, fileName, previewSearch):
+            self.fileList.append(QPushButton(fileName))
+            self.filePreview.append(QLabel(previewSearch))
+            self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
 
 
 class SearchResultEntryWidget(QWidget):
