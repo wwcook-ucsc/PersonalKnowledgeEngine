@@ -36,9 +36,12 @@ class PkeAppWindow(QMainWindow):
             testlist.append("test filename")
             testlist2.append("test other column")
 
-        searchResults = SearchResultsWidget(testlist, testlist2)
+        searchResults = SearchResultsWidget()
         gridLayout.addWidget(searchResults, 1, 0)
-
+        
+        """Adding test results to search results box"""
+        searchResults.addResults(testlist, testlist2)
+        searchResults.addOneResult("Test File", "Test Preview")
 
 class SearchBarWidget(QWidget):
 
@@ -72,10 +75,9 @@ class SearchBarWidget(QWidget):
 
 class SearchResultsWidget(QWidget):
 
-    """Takes two lists as input 
-    Prints out the two lists, first list as a column of button widgets and
-    second list as a column of labels. The results are scrollable and size adjustable"""
-    def __init__(self, fileNames, previewSearch):
+    """Initializes the search results box. 
+    The box is scrollable and size adjustable."""
+    def __init__(self):
         """PyQt widget containing the list of search results
 
         This widget might just be a table of SearchResultEntryWidget
@@ -83,18 +85,13 @@ class SearchResultsWidget(QWidget):
         """
         QWidget.__init__(self)
 
-        rowLayout = QFormLayout()
+        self.fileList = []
+        self.filePreview = []
+
+        self.rowLayout = QFormLayout()
         groupBox = QGroupBox("Search Results")
 
-        fileList = []
-        filePreview = []
-
-        for fileIndex in range(len(fileNames)):
-            fileList.append(QPushButton(fileNames[fileIndex]))
-            filePreview.append(QLabel(previewSearch[fileIndex]))
-            rowLayout.addRow(fileList[fileIndex], filePreview[fileIndex])
-
-        groupBox.setLayout(rowLayout)
+        groupBox.setLayout(self.rowLayout)
         scrollBox = QScrollArea()
         scrollBox.setWidgetResizable(True)
         scrollBox.setWidget(groupBox)
@@ -103,6 +100,23 @@ class SearchResultsWidget(QWidget):
         verticalLayout.addWidget(scrollBox)
 
         self.setLayout(verticalLayout)
+
+    """Takes as input two lists and adds them to the results box.
+    The first list is a column of button widgets
+    The second list is a column of labels"""
+    def addResults(self, fileNames, previewSearch):
+        for fileIndex in range(len(fileNames)):
+            self.fileList.append(QPushButton(fileNames[fileIndex]))
+            self.filePreview.append(QLabel(previewSearch[fileIndex]))
+            self.rowLayout.addRow(self.fileList[fileIndex], self.filePreview[fileIndex])
+    
+    """Takes as input two strings and adds the to results box
+    The first string is added as a button and the second string
+    is added as a label"""
+    def addOneResult(self, fileName, previewSearch):
+            self.fileList.append(QPushButton(fileName))
+            self.filePreview.append(QLabel(previewSearch))
+            self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
 
 
 class SearchResultEntryWidget(QWidget):
