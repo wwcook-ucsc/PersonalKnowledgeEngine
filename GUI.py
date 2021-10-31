@@ -10,6 +10,7 @@ import sys
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
+from Backend import search_for_string
 
 
 class PkeAppWindow(QMainWindow):
@@ -71,6 +72,33 @@ class SearchBarWidget(QWidget):
         pybutton = QPushButton('Start Search/Cancel', self)
         pybutton.resize(180,32)
         pybutton.move(320,15)
+        pybutton.clicked.connect(self.searchButtonClicked)
+        self.search_is_running = [False]
+
+    def searchButtonClicked(self):
+        """Function that's called when the search button is pressed.
+        """
+        if self.search_is_running[0]:
+            print('search in progress')
+        else:
+            # TODO Collect information to pass into search
+            key = 'key'
+            include_paths = ['.']
+            include_exts = ['.txt']
+            exclude_paths = []
+            # TODO Show that the search is starting
+            print('starting search')
+            self.search_is_running[0] = True
+            search_for_string(
+                key,
+                self.search_is_running,
+                include_paths,
+                include_exts,
+                exclude_paths,
+            )
+            # TODO Show that the search is finished
+            self.search_is_running[0] = False
+            print('search finished')
 
 
 class SearchResultsWidget(QWidget):

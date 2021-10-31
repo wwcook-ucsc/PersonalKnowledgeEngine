@@ -55,6 +55,7 @@ def search_files_for_string(paths: list, key: str) -> list:
     return file_hits
 
 def foreach_file(func,
+                 running: list,
                  include_paths: list,
                  include_exts: list = None,
                  exclude_paths: list = None) -> None:
@@ -99,6 +100,9 @@ def foreach_file(func,
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
+        nonlocal running
+        if not running[0]:
+            return
         if is_excluded(path, exclude_paths):
             return
         if path.is_dir():
@@ -123,6 +127,7 @@ def foreach_file(func,
             func(str(path))
 
 def search_for_string(key: str,
+                      search_is_running: list,
                       include_paths: list,
                       include_exts: list = None,
                       exclude_paths: list = None) -> list:
@@ -142,6 +147,7 @@ def search_for_string(key: str,
             file_hits.append((path, output_instances))
 
     foreach_file(search_file_func,
+                 search_is_running,
                  include_paths,
                  include_exts,
                  exclude_paths)
