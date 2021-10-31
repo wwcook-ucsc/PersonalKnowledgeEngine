@@ -69,36 +69,51 @@ class SearchBarWidget(QWidget):
         self.line.resize(200, 32)
         self.nameLabel.move(20, 20)
 
-        pybutton = QPushButton('Start Search/Cancel', self)
-        pybutton.resize(180,32)
-        pybutton.move(320,15)
-        pybutton.clicked.connect(self.searchButtonClicked)
+        self.startbutton = QPushButton('Start Search', self)
+        self.startbutton.resize(180,32)
+        self.startbutton.move(320,15)
+        self.startbutton.clicked.connect(self.searchButtonClicked)
         self.search_is_running = [False]
+
+        
+        self.cancelbutton = QPushButton('Cancel Search', self)
+        self.cancelbutton.resize(180,32)
+        self.cancelbutton.move(320,15)
+        self.startbutton.clicked.connect(self.cancelButtonClicked)
+        self.cancelbutton.hide()
 
     def searchButtonClicked(self):
         """Function that's called when the search button is pressed.
         """
-        if self.search_is_running[0]:
-            print('search in progress')
-        else:
-            # TODO Collect information to pass into search
-            key = 'key'
-            include_paths = ['.']
-            include_exts = ['.txt']
-            exclude_paths = []
-            # TODO Show that the search is starting
-            print('starting search')
-            self.search_is_running[0] = True
-            search_for_string(
-                key,
-                self.search_is_running,
-                include_paths,
-                include_exts,
-                exclude_paths,
-            )
-            # TODO Show that the search is finished
-            self.search_is_running[0] = False
-            print('search finished')
+        # TODO Collect information to pass into search
+        key = 'key'
+        include_paths = ['.']
+        include_exts = ['.txt']
+        exclude_paths = []
+        # TODO Show that the search is starting
+        self.cancelbutton.show()
+        self.startbutton.hide()
+        print('starting search')
+        self.search_is_running[0] = True
+        search_for_string(
+            key,
+            self.search_is_running,
+            include_paths,
+            include_exts,
+            exclude_paths,
+        )
+        # TODO Show that the search is finished
+        self.search_is_running[0] = False
+        self.startbutton.show()
+        self.cancelbutton.hide()
+        print('search finished')
+
+    def cancelButtonClicked(self):
+        """Function that's called when the cancel button is pressed.
+        """
+        self.search_is_running[0] = False
+        self.startbutton.show()
+        self.cancelbutton.hide()
 
 
 class SearchResultsWidget(QWidget):
