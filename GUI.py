@@ -7,6 +7,7 @@ https://pythonprogramminglanguage.com/pyqt/
 """
 
 import sys
+import time
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
@@ -78,8 +79,8 @@ class SearchBarWidget(QWidget):
         
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180,32)
-        self.cancelbutton.move(320,15)
-        self.startbutton.clicked.connect(self.cancelButtonClicked)
+        self.cancelbutton.move(320,100)
+        self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
     def searchButtonClicked(self):
@@ -102,16 +103,18 @@ class SearchBarWidget(QWidget):
             include_exts,
             exclude_paths,
         )
+        time.sleep(5)
         # TODO Show that the search is finished
         self.search_is_running[0] = False
-        self.startbutton.show()
-        self.cancelbutton.hide()
+        # self.startbutton.show()
+        # self.cancelbutton.hide()
         print('search finished')
 
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
         """
         self.search_is_running[0] = False
+        print('cancellation of search')
         self.startbutton.show()
         self.cancelbutton.hide()
 
