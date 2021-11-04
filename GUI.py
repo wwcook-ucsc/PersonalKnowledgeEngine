@@ -61,16 +61,26 @@ class SearchBarWidget(QWidget):
         self.setMinimumSize(QSize(300,270))    
         self.setWindowTitle("PKE Search Engine") 
         self.nameLabel = QLabel(self)
-        # self.nameLabel.setText('Search Term')
+        self.nameLabel.setText('Search:')
         self.line = QLineEdit(self)
 
         self.line.move(100, 20)
         self.line.resize(200, 32)
         self.nameLabel.move(20, 20)
 
+        self2 = self
+
+        self2.nameLabel = QLabel(self)
+        self2.nameLabel.setText('File:')
+        self2.line = QLineEdit(self)
+
+        self2.line.move(360, 20)
+        self2.line.resize(200, 32)
+        self2.nameLabel.move(320, 20)
+
         pybutton = QPushButton('Start Search/Cancel', self)
         pybutton.resize(180,32)
-        pybutton.move(320,15)
+        pybutton.move(150,70)
 
 
 class SearchResultsWidget(QWidget):
