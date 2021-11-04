@@ -10,6 +10,7 @@ https://pythonprogramminglanguage.com/pyqt/
 
 # IMPORTS
 import os
+import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
@@ -67,6 +68,8 @@ class PkeAppWindow(QMainWindow):
             # PARSE RESULTS
             pass
         except Exception:  # unhandled exception in backend code; print error and return
+            print("UNHANDLED EXCEPTION:")
+            print(traceback.format_exc())
             self.searchResults.addOneResult("ERROR_MESSAGE", "Some internal Exception in the Backend could not"
                     " be handled.")
             return
