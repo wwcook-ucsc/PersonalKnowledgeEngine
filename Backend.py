@@ -3,7 +3,7 @@ PersonalKnowledgeEngine
 
 
 
-GUI Events call functions housed in this file; serves "GUI_Master_Script"
+GUI Events call functions housed in this file; serves "GUI"
 """
 
 

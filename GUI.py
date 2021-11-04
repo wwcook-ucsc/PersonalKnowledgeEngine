@@ -6,11 +6,19 @@ References:
 https://pythonprogramminglanguage.com/pyqt/
 """
 
-import sys
+
+
+# IMPORTS
+import os
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
 
+import Backend
+
+
+
+# GUI CLASSES
 
 class PkeAppWindow(QMainWindow):
 
@@ -26,26 +34,53 @@ class PkeAppWindow(QMainWindow):
         gridLayout = QGridLayout(self)
         centralWidget.setLayout(gridLayout)
 
-        searchBar = SearchBarWidget()
-        gridLayout.addWidget(searchBar, 0, 0)
+        self.searchBar = SearchBarWidget(self.perform_search)
+        gridLayout.addWidget(self.searchBar, 0, 0)
 
-        """Test list inputs for the search results"""
-        testlist = []
-        testlist2 = []
-        for x in range(20):
-            testlist.append("test filename")
-            testlist2.append("test other column")
+        self.searchResults = SearchResultsWidget()
+        gridLayout.addWidget(self.searchResults, 1, 0)
 
-        searchResults = SearchResultsWidget()
-        gridLayout.addWidget(searchResults, 1, 0)
-        
-        """Adding test results to search results box"""
-        searchResults.addResults(testlist, testlist2)
-        searchResults.addOneResult("Test File", "Test Preview")
+
+    def perform_search(self):
+        """
+        Event function, for when search button is clicked; performs the search
+        :return: void
+        """
+
+        # CLEAR RESULTS
+        self.searchResults.clearResults()
+
+        # GET TEXT VALUES
+        search_key, file_path = self.searchBar.get_text_values()
+
+        # CHECK IF FILE EXISTS
+        if not os.path.isfile(file_path): # file does not exist
+            self.searchResults.addOneResult("ERROR_MESSAGE", "There is no file at the given path. Please check "
+                    "your input values.")
+            return
+
+        try:  # backend code
+
+            # PERFORM SEARCH
+            search_results = Backend.search_file_for_string(path=file_path, key=search_key)
+
+            # PARSE RESULTS
+            pass
+        except Exception:  # unhandled exception in backend code; print error and return
+            self.searchResults.addOneResult("ERROR_MESSAGE", "Some internal Exception in the Backend could not"
+                    " be handled.")
+            return
+
+        # PRESENT RESULTS
+        if search_results:
+            self.searchResults.addResults(search_results)
+        else:
+            self.searchResults.addOneResult("NOT FOUND", "Your search key was not found within the file(s) searched.")
+
 
 class SearchBarWidget(QWidget):
 
-    def __init__(self):
+    def __init__(self, perform_search):
         """PyQt widget containing a search bar and search button
         """
         QWidget.__init__(self)
@@ -53,34 +88,43 @@ class SearchBarWidget(QWidget):
         gridLayout = QGridLayout(self)
         self.setLayout(gridLayout)
 
-        title = QLabel('This is the search bar widget', self)
+        title = QLabel('', self)
         title.setAlignment(QtCore.Qt.AlignCenter)
         gridLayout.addWidget(title, 0, 0)
 
         """Adding text input"""
         self.setMinimumSize(QSize(300,270))    
         self.setWindowTitle("PKE Search Engine") 
-        self.nameLabel = QLabel(self)
-        self.nameLabel.setText('Search:')
-        self.line = QLineEdit(self)
 
-        self.line.move(100, 20)
-        self.line.resize(200, 32)
-        self.nameLabel.move(20, 20)
+        nameLabel = QLabel(self)
+        nameLabel.setText('Search For:')
+        self.search_line = QLineEdit(self)
 
-        self2 = self
+        self.search_line.move(100, 20)
+        self.search_line.resize(200, 32)
+        nameLabel.move(40, 20)
 
-        self2.nameLabel = QLabel(self)
-        self2.nameLabel.setText('File:')
-        self2.line = QLineEdit(self)
+        nameLabel = QLabel(self)
+        nameLabel.setText('File Path:')
+        self.file_line = QLineEdit(self)
 
-        self2.line.move(360, 20)
-        self2.line.resize(200, 32)
-        self2.nameLabel.move(320, 20)
+        self.file_line.move(360, 20)
+        self.file_line.resize(200, 32)
+        nameLabel.move(310, 20)
 
         pybutton = QPushButton('Start Search/Cancel', self)
         pybutton.resize(180,32)
         pybutton.move(150,70)
+
+        pybutton.clicked.connect(perform_search)
+
+
+    def get_text_values(self) -> (str, str):
+        """
+        Get the values in the text input boxes
+        :return: (search_key, file_path)
+        """
+        return self.search_line.text(), self.file_line.text()
 
 
 class SearchResultsWidget(QWidget):
@@ -111,40 +155,50 @@ class SearchResultsWidget(QWidget):
 
         self.setLayout(verticalLayout)
 
-    """Takes as input two lists and adds them to the results box.
-    The first list is a column of button widgets
-    The second list is a column of labels"""
-    def addResults(self, fileNames, previewSearch):
-        for fileIndex in range(len(fileNames)):
-            self.fileList.append(QPushButton(fileNames[fileIndex]))
-            self.filePreview.append(QLabel(previewSearch[fileIndex]))
-            self.rowLayout.addRow(self.fileList[fileIndex], self.filePreview[fileIndex])
-    
-    """Takes as input two strings and adds the to results box
-    The first string is added as a button and the second string
-    is added as a label"""
-    def addOneResult(self, fileName, previewSearch):
-            self.fileList.append(QPushButton(fileName))
-            self.filePreview.append(QLabel(previewSearch))
+
+    """Clear all results"""
+    def clearResults(self):
+        self.fileList = []
+        self.filePreview = []
+        for _ in range(self.rowLayout.rowCount()):
+            self.rowLayout.removeRow(0)
+
+
+    """Takes as input a list of tuples (file name, preview) and adds them to the results box.
+    The first column are button widgets
+    The second column are labels"""
+    def addResults(self, rows):
+        for file_name, preview in rows:
+            self.fileList.append(QPushButton(str(file_name)))
+            self.filePreview.append(QLabel(str(preview)))
             self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
 
 
-class SearchResultEntryWidget(QWidget):
+    """Takes as input two strings and adds them to results box
+    The first string is added as a button and the second string
+    is added as a label"""
+    def addOneResult(self, fileName, previewSearch):
+        self.fileList.append(QPushButton(str(fileName)))
+        self.filePreview.append(QLabel(str(previewSearch)))
+        self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
 
-    def __init__(self):
-        """PyQt widget containing a single search result
 
-        This might contain, for example: the name of the file and/or path to
-        the file; an exerpt from the file, showing what the search matched;
-        a button to open the file location in the file browser; a button to
-        open the file in a text editor.
-        """
-        QWidget.__init__(self)
-
-        gridLayout = QGridLayout(self)
-        self.setLayout(gridLayout)
-
-        title = QLabel('This is a single search result', self)
-        title.setAlignment(QtCore.Qt.AlignCenter)
-        gridLayout.addWidget(title, 0, 0)
-
+# class SearchResultEntryWidget(QWidget):
+#
+#     def __init__(self):
+#         """PyQt widget containing a single search result
+#
+#         This might contain, for example: the name of the file and/or path to
+#         the file; an excerpt from the file, showing what the search matched;
+#         a button to open the file location in the file browser; a button to
+#         open the file in a text editor.
+#         """
+#         QWidget.__init__(self)
+#
+#         gridLayout = QGridLayout(self)
+#         self.setLayout(gridLayout)
+#
+#         title = QLabel('This is a single search result', self)
+#         title.setAlignment(QtCore.Qt.AlignCenter)
+#         gridLayout.addWidget(title, 0, 0)
+#
