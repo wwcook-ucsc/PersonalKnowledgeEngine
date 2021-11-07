@@ -4,29 +4,106 @@ Contains the PKE GUI elements constructed using PyQt5
 
 References:
 https://pythonprogramminglanguage.com/pyqt/
-https://www.tutorialspoint.com/pyqt5/pyqt5_signals_and_slots.htm
-https://zetcode.com/gui/pyqt5/eventssignals/
-
-TODO use Qt signals instead of callbacks for inter-thread communication
+https://www.pythonguis.com/tutorials/multithreading-pyqt-applications-qthreadpool/
 """
 
 
-import os
+import sys
 import traceback
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, \
-                            QPushButton, QLineEdit, QScrollArea, \
-                            QFormLayout, QGroupBox, QVBoxLayout
-from PyQt5.QtCore import QSize
-import Backend
+from PyQt5.QtCore import (
+    QSize,
+    QObject,
+    pyqtSignal,
+    pyqtSlot,
+    QRunnable,
+    QThreadPool,
+)
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QLabel,
+    QGridLayout,
+    QWidget,
+    QPushButton,
+    QLineEdit,
+    QScrollArea,
+    QFormLayout,
+    QGroupBox,
+    QVBoxLayout,
+)
 from Backend import search_for_string
-from threading import Thread  # we just need the GUI to update
+
+
+class BackendWorkerSignals(QObject):
+    """
+    Signals that the backend thread can emit to the GUI thread
+
+    Supported signals:
+
+    search_hit: file_path : str, (line_num : int, line: str)
+        emitted when the search function finds a search hit
+
+    finished: None
+        emitted when the search function completes
+
+    error: tuple (exctype, value, traceback.format_exc() )
+        emitted when an exception is raised in the backend
+    """
+    search_hit = pyqtSignal(str, tuple)
+    finished = pyqtSignal()
+    error = pyqtSignal(tuple)
+
+
+class BackendWorker(QRunnable):
+
+    def __init__(self, terminate_search, key,
+                 include_paths, include_exts, exclude_paths):
+        """Calls the backend search function in a separate thread
+        """
+        super(BackendWorker, self).__init__()
+        self.terminate_search = terminate_search
+        self.key = key
+        self.include_paths = include_paths
+        self.include_exts = include_exts
+        self.exclude_paths = exclude_paths
+        self.signals = BackendWorkerSignals()
+
+    def resultCallback(self, path, search_hits):
+        for hit in search_hits:
+            self.signals.search_hit.emit(path, hit)
+
+    def finishedCallback(self):
+        self.signals.finished.emit()
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            search_for_string(
+                self.resultCallback,
+                self.finishedCallback,
+                self.terminate_search,
+                self.key,
+                self.include_paths,
+                self.include_exts,
+                self.exclude_paths,
+            )
+        except Exception as e:
+            del e  # prevent unused variable warning
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        finally:
+            self.signals.finished.emit()
 
 
 class PkeAppWindow(QMainWindow):
 
     def __init__(self):
+        """Main Qt window used to run the entire application
+        """
         QMainWindow.__init__(self)
+
+        self.threadpool = QThreadPool()
 
         self.setMinimumSize(QSize(640, 480))
         self.setWindowTitle('Personal Knowledge Engine')
@@ -40,56 +117,37 @@ class PkeAppWindow(QMainWindow):
         self.searchResults = SearchResultsWidget()
         gridLayout.addWidget(self.searchResults, 1, 0)
 
-        self.searchBar = SearchBarWidget(self.searchResults)
+        self.searchBar = SearchBarWidget(self)
         gridLayout.addWidget(self.searchBar, 0, 0)
 
-    def perform_search(self):
+    def runSearch(self, key, include_paths, include_exts, exclude_paths):
+        """Spawns a worker thread in the threadpool for the backend
         """
-        Event function, for when search button is clicked; performs the search
-        :return: void
-        """
+        worker = BackendWorker(
+            self.searchBar.terminate_search,
+            key,
+            include_paths,
+            include_exts,
+            exclude_paths,
+        )
+        worker.signals.search_hit.connect(self.searchResults.addOneResult)
+        worker.signals.finished.connect(self.searchBar.searchCompletedCallback)
 
-        # CLEAR RESULTS
         self.searchResults.clearResults()
 
-        # GET TEXT VALUES
-        search_key, file_path = self.searchBar.get_text_values()
-
-        # CHECK IF FILE EXISTS
-        if not os.path.isfile(file_path): # file does not exist
-            self.searchResults.addOneResult("ERROR_MESSAGE", "There is no file at the given path. Please check "
-                    "your input values.")
-            return
-
-        try:  # backend code
-
-            # PERFORM SEARCH
-            search_results = Backend.search_file_for_string(path=file_path, key=search_key)
-
-            # PARSE RESULTS
-            pass
-        except Exception:  # unhandled exception in backend code; print error and return
-            print("UNHANDLED EXCEPTION:")
-            print(traceback.format_exc())
-            self.searchResults.addOneResult("ERROR_MESSAGE", "Some internal Exception in the Backend could not"
-                    " be handled.")
-            return
-
-        # PRESENT RESULTS
-        if search_results:
-            self.searchResults.addResults(search_results)
-        else:
-            self.searchResults.addOneResult("NOT FOUND", "Your search key was not found within the file(s) searched.")
+        self.threadpool.start(worker)
 
 
 class SearchBarWidget(QWidget):
 
-    def __init__(self, search_results_widget):
+    def __init__(self, app_widget):
         """PyQt widget containing a search bar and search button
+
+        :param app_widget: main app window widget instance
         """
         QWidget.__init__(self)
 
-        self.search_results_widget = search_results_widget
+        self.app_widget = app_widget
 
         gridLayout = QGridLayout(self)
         self.setLayout(gridLayout)
@@ -139,39 +197,35 @@ class SearchBarWidget(QWidget):
             self.search_results_widget.addOneResult(path, output_instances)
 
     def searchCompletedCallback(self):
-        self.search_is_running = False
-        self.cancelbutton.hide()
-        self.startbutton.show()
-        print('search finished')
+        if self.search_is_running:
+            self.search_is_running = False
+            self.cancelbutton.hide()
+            self.startbutton.show()
+            print('search finished')
 
     def searchButtonClicked(self):
         """Function that's called when the search button is pressed.
         """
         if not self.search_is_running:
-            # TODO Collect information to pass into search
-            key = self.search_line.text()
-            include_paths = self.file_line.text().split(',')
-            include_exts = ['.txt']
-            exclude_paths = []
-            self.terminate_search[0] = False
-            backend_thread = Thread(
-                target=search_for_string,
-                args=(
-                    key,
-                    self.searchResultCallback,
-                    self.searchCompletedCallback,
-                    self.terminate_search,
-                    include_paths,
-                    include_exts,
-                    exclude_paths
-                )
-            )
+            (
+                key,
+                include_paths,
+                include_exts,
+                exclude_paths,
+            ) = self.getSearchInfo()
+
             self.startbutton.hide()
             self.cancelbutton.show()
             print('starting search')
-            self.search_results_widget.clearResults()
+            self.terminate_search[0] = False
             self.search_is_running = True
-            backend_thread.start()
+
+            self.app_widget.runSearch(
+                key,
+                include_paths,
+                include_exts,
+                exclude_paths,
+            )
 
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
@@ -179,6 +233,14 @@ class SearchBarWidget(QWidget):
         if self.search_is_running and not self.terminate_search[0]:
             self.terminate_search[0] = True
             print('search thread notified of cancellation')
+
+    def getSearchInfo(self):
+        # TODO Collect information to pass into search
+        key = self.search_line.text()
+        include_paths = self.file_line.text().split(',')
+        include_exts = ['.txt', '.py']
+        exclude_paths = []
+        return key, include_paths, include_exts, exclude_paths
 
 
 class SearchResultsWidget(QWidget):

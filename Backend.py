@@ -8,7 +8,6 @@ GUI Events call functions housed in this file; serves "GUI"
 # IMPORTS (remember to list installed packages in "requirements.txt")
 from pathlib import Path
 import ntpath
-import time
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
@@ -127,10 +126,10 @@ def foreach_file(func,
             func(str(path))
 
 
-def search_for_string(key: str,
-                      result_callback,
+def search_for_string(result_callback,
                       finished_callback,
                       terminate_search,
+                      key: str,
                       include_paths: list,
                       include_exts: list = None,
                       exclude_paths: list = None) -> None:
@@ -141,6 +140,13 @@ def search_for_string(key: str,
     :param include_exts: a list of file extensions to include
     :param exclude_paths: a list of path of directories/files to be excluded
     """
+    print('search_for_string(')
+    print('\tkey =', key)
+    print('\tinclude_paths =', include_paths)
+    print('\tinclude_exts =', include_exts)
+    print('\texclude_paths =', exclude_paths)
+    print(')')
+
     def search_file_func(path: str):
         output_instances = search_file_for_string(path, key)
         if output_instances:
@@ -151,12 +157,6 @@ def search_for_string(key: str,
                  include_paths,
                  include_exts,
                  exclude_paths)
-
-    # simulate a 5 second long search to demonstrate cancellation ability
-    i = 0
-    while i < 5 and not terminate_search[0]:
-        time.sleep(1)
-        i += 1
 
     finished_callback()
 
