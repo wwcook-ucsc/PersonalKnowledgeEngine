@@ -1,11 +1,8 @@
 """
 PersonalKnowledgeEngine
 
-
-
-GUI Events call functions housed in this file; serves "GUI_Master_Script"
+GUI Events call functions housed in this file; serves "GUI"
 """
-
 
 
 # IMPORTS (remember to list installed packages in "requirements.txt")
@@ -38,15 +35,16 @@ def search_file_for_string(path: str, key: str) -> list:
                 key_instances.append((i+1, line))
     return key_instances
 
+
 def search_files_for_string(paths: list, key: str) -> list:
-    """
-    Search each line of a multiple files for a string key
-    :param paths: a list of the relative or absolute paths to the files to be searched
+    """Searchs each line of a multiple files for a string key
+    :param paths: a list of the relative or absolute paths to the files to be
+                  searched
     :param key: The string to search through the files for
-    :return: [ (path to file#1, [(line# of key occurrence #1, full line of key occurrence #1), ...] ) ...]
+    :return: [ (path to file#1, [(line# of key occurrence #1, full line of keyoccurrence #1), ...] ) ...]
             ^ a list of tuples: file path, and the list of occurrences in file path
     """
-    file_hits = [] 
+    file_hits = []
 
     for file in paths:
         output_instances = search_file_for_string(file, key)
@@ -54,7 +52,9 @@ def search_files_for_string(paths: list, key: str) -> list:
             file_hits.append((file, output_instances))
     return file_hits
 
+
 def foreach_file(func,
+                 terminate_early: list,
                  include_paths: list,
                  include_exts: list = None,
                  exclude_paths: list = None) -> None:
@@ -99,6 +99,9 @@ def foreach_file(func,
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
+        nonlocal terminate_early
+        if terminate_early[0]:
+            return
         if is_excluded(path, exclude_paths):
             return
         if path.is_dir():
@@ -122,10 +125,14 @@ def foreach_file(func,
         else:
             func(str(path))
 
-def search_for_string(key: str,
+
+def search_for_string(result_callback,
+                      finished_callback,
+                      terminate_search,
+                      key: str,
                       include_paths: list,
                       include_exts: list = None,
-                      exclude_paths: list = None) -> list:
+                      exclude_paths: list = None) -> None:
     """
     Search each line of every matching file for a string key
     :param key: the string to search through the files for
@@ -133,20 +140,26 @@ def search_for_string(key: str,
     :param include_exts: a list of file extensions to include
     :param exclude_paths: a list of path of directories/files to be excluded
     """
-    file_hits = []
+    print('search_for_string(')
+    print('\tkey =', key)
+    print('\tinclude_paths =', include_paths)
+    print('\tinclude_exts =', include_exts)
+    print('\texclude_paths =', exclude_paths)
+    print(')')
 
     def search_file_func(path: str):
-        nonlocal file_hits
         output_instances = search_file_for_string(path, key)
         if output_instances:
-            file_hits.append((path, output_instances))
+            result_callback(path, output_instances)
 
     foreach_file(search_file_func,
+                 terminate_search,
                  include_paths,
                  include_exts,
                  exclude_paths)
 
-    return file_hits
+    finished_callback()
+
 
 def convert_readable(file_hits):
     """
@@ -162,4 +175,4 @@ def convert_readable(file_hits):
             line_hits.append(line_info[1])
             file_names.append(ntpath.basename(file_output[0]))
 
-    return((file_names,line_hits))
+    return (file_names, line_hits)
