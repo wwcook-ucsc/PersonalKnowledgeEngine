@@ -11,6 +11,7 @@ GUI Events call functions housed in this file; serves "GUI"
 # IMPORTS (remember to list installed packages in "requirements.txt")
 from pathlib import Path
 import ntpath
+import time
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
@@ -55,6 +56,7 @@ def search_files_for_string(paths: list, key: str) -> list:
     return file_hits
 
 def foreach_file(func,
+                 terminate_early: list,
                  include_paths: list,
                  include_exts: list = None,
                  exclude_paths: list = None) -> None:
@@ -99,6 +101,9 @@ def foreach_file(func,
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
+        nonlocal terminate_early
+        if terminate_early[0]:
+            return
         if is_excluded(path, exclude_paths):
             return
         if path.is_dir():
@@ -123,6 +128,9 @@ def foreach_file(func,
             func(str(path))
 
 def search_for_string(key: str,
+                      result_callback,
+                      finished_callback,
+                      terminate_search,
                       include_paths: list,
                       include_exts: list = None,
                       exclude_paths: list = None) -> list:
@@ -133,20 +141,24 @@ def search_for_string(key: str,
     :param include_exts: a list of file extensions to include
     :param exclude_paths: a list of path of directories/files to be excluded
     """
-    file_hits = []
-
     def search_file_func(path: str):
-        nonlocal file_hits
         output_instances = search_file_for_string(path, key)
         if output_instances:
-            file_hits.append((path, output_instances))
+            result_callback(path, output_instances)
 
     foreach_file(search_file_func,
+                 terminate_search,
                  include_paths,
                  include_exts,
                  exclude_paths)
 
-    return file_hits
+    # simulate a 5 second long search to demonstrate cancellation ability
+    i = 0
+    while i < 5 and not terminate_search[0]:
+        time.sleep(1)
+        i += 1
+
+    finished_callback()
 
 def convert_readable(file_hits):
     """

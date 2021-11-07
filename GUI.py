@@ -4,6 +4,10 @@ Contains the PKE GUI elements constructed using PyQt5
 
 References:
 https://pythonprogramminglanguage.com/pyqt/
+https://www.tutorialspoint.com/pyqt5/pyqt5_signals_and_slots.htm
+https://zetcode.com/gui/pyqt5/eventssignals/
+
+TODO use Qt signals instead of callbacks for inter-thread communication
 """
 
 
@@ -14,6 +18,9 @@ import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
+from Backend import search_for_string
+from threading import Thread  # just use threading instead of multiprocessing
+                              # because we just need the GUI to update
 
 import Backend
 
@@ -35,11 +42,11 @@ class PkeAppWindow(QMainWindow):
         gridLayout = QGridLayout(self)
         centralWidget.setLayout(gridLayout)
 
-        self.searchBar = SearchBarWidget(self.perform_search)
-        gridLayout.addWidget(self.searchBar, 0, 0)
-
         self.searchResults = SearchResultsWidget()
         gridLayout.addWidget(self.searchResults, 1, 0)
+
+        self.searchBar = SearchBarWidget(self.searchResults)
+        gridLayout.addWidget(self.searchBar, 0, 0)
 
 
     def perform_search(self):
@@ -83,10 +90,12 @@ class PkeAppWindow(QMainWindow):
 
 class SearchBarWidget(QWidget):
 
-    def __init__(self, perform_search):
+    def __init__(self, search_results_widget):
         """PyQt widget containing a search bar and search button
         """
         QWidget.__init__(self)
+
+        self.search_results_widget = search_results_widget
 
         gridLayout = QGridLayout(self)
         self.setLayout(gridLayout)
@@ -115,19 +124,68 @@ class SearchBarWidget(QWidget):
         self.file_line.resize(200, 32)
         nameLabel.move(310, 20)
 
-        pybutton = QPushButton('Start Search/Cancel', self)
-        pybutton.resize(180,32)
-        pybutton.move(150,70)
+        self.search_is_running = False
+        self.terminate_search = [False]
 
-        pybutton.clicked.connect(perform_search)
+        self.startbutton = QPushButton('Start Search', self)
+        self.startbutton.resize(180,32)
+        self.startbutton.move(150,70)
+        self.startbutton.clicked.connect(self.searchButtonClicked)
 
+        
+        self.cancelbutton = QPushButton('Cancel Search', self)
+        self.cancelbutton.resize(180,32)
+        self.cancelbutton.move(150,70)
+        self.cancelbutton.clicked.connect(self.cancelButtonClicked)
+        self.cancelbutton.hide()
 
-    def get_text_values(self) -> (str, str):
+    def searchResultCallback(self, path, output_instances):
+        if self.search_is_running and not self.terminate_search[0]:
+            print('result found in file:', path)
+            print('result:', output_instances)
+            self.search_results_widget.addOneResult(path, output_instances)
+
+    def searchCompletedCallback(self):
+        self.search_is_running = False
+        self.cancelbutton.hide()
+        self.startbutton.show()
+        print('search finished')
+
+    def searchButtonClicked(self):
+        """Function that's called when the search button is pressed.
         """
-        Get the values in the text input boxes
-        :return: (search_key, file_path)
+        if not self.search_is_running:
+            # TODO Collect information to pass into search
+            key = self.search_line.text()
+            include_paths = self.file_line.text().split(',')
+            include_exts = ['.txt']
+            exclude_paths = []
+            self.terminate_search[0] = False
+            backend_thread = Thread(
+                target=search_for_string,
+                args=(
+                    key,
+                    self.searchResultCallback,
+                    self.searchCompletedCallback,
+                    self.terminate_search,
+                    include_paths,
+                    include_exts,
+                    exclude_paths
+                )
+            )
+            self.startbutton.hide()
+            self.cancelbutton.show()
+            print('starting search')
+            self.search_results_widget.clearResults()
+            self.search_is_running = True
+            backend_thread.start()
+
+    def cancelButtonClicked(self):
+        """Function that's called when the cancel button is pressed.
         """
-        return self.search_line.text(), self.file_line.text()
+        if self.search_is_running and not self.terminate_search[0]:
+            self.terminate_search[0] = True
+            print('search thread notified of cancellation')
 
 
 class SearchResultsWidget(QWidget):
