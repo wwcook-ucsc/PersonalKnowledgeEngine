@@ -4,14 +4,18 @@ Contains the PKE GUI elements constructed using PyQt5
 
 References:
 https://pythonprogramminglanguage.com/pyqt/
+https://www.tutorialspoint.com/pyqt5/pyqt5_signals_and_slots.htm
+https://zetcode.com/gui/pyqt5/eventssignals/
+
+TODO use Qt signals instead of callbacks for inter-thread communication
 """
 
-import sys
-import time
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
 from Backend import search_for_string
+from threading import Thread  # just use threading instead of multiprocessing
+                              # because we just need the GUI to update
 
 
 class PkeAppWindow(QMainWindow):
@@ -70,53 +74,65 @@ class SearchBarWidget(QWidget):
         self.line.resize(200, 32)
         self.nameLabel.move(20, 20)
 
+        self.search_is_running = False
+        self.terminate_search = [False]
+
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180,32)
         self.startbutton.move(320,15)
         self.startbutton.clicked.connect(self.searchButtonClicked)
-        self.search_is_running = [False]
 
         
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180,32)
-        self.cancelbutton.move(320,100)
+        self.cancelbutton.move(320,15)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
+
+    def searchResultCallback(self, path, output_instances):
+        if self.search_is_running[0]:
+            pass
+
+    def searchCompletedCallback(self):
+        self.search_is_running = False
+        self.cancelbutton.hide()
+        self.startbutton.show()
+        print('search finished')
 
     def searchButtonClicked(self):
         """Function that's called when the search button is pressed.
         """
-        # TODO Collect information to pass into search
-        key = 'key'
-        include_paths = ['.']
-        include_exts = ['.txt']
-        exclude_paths = []
-        # TODO Show that the search is starting
-        self.cancelbutton.show()
-        self.startbutton.hide()
-        print('starting search')
-        self.search_is_running[0] = True
-        search_for_string(
-            key,
-            self.search_is_running,
-            include_paths,
-            include_exts,
-            exclude_paths,
-        )
-        time.sleep(5)
-        # TODO Show that the search is finished
-        self.search_is_running[0] = False
-        # self.startbutton.show()
-        # self.cancelbutton.hide()
-        print('search finished')
+        if not self.search_is_running:
+            # TODO Collect information to pass into search
+            key = 'key'
+            include_paths = ['.']
+            include_exts = ['.txt']
+            exclude_paths = []
+            self.terminate_search[0] = False
+            backend_thread = Thread(
+                target=search_for_string,
+                args=(
+                    key,
+                    self.searchResultCallback,
+                    self.searchCompletedCallback,
+                    self.terminate_search,
+                    include_paths,
+                    include_exts,
+                    exclude_paths
+                )
+            )
+            self.startbutton.hide()
+            self.cancelbutton.show()
+            print('starting search')
+            self.search_is_running = True
+            backend_thread.start()
 
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
         """
-        self.search_is_running[0] = False
-        print('cancellation of search')
-        self.startbutton.show()
-        self.cancelbutton.hide()
+        if self.search_is_running and not self.terminate_search[0]:
+            self.terminate_search[0] = True
+            print('search thread notified of cancellation')
 
 
 class SearchResultsWidget(QWidget):
