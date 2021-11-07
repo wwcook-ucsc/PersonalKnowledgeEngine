@@ -11,22 +11,17 @@ TODO use Qt signals instead of callbacks for inter-thread communication
 """
 
 
-
-# IMPORTS
 import os
 import traceback
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QPushButton, QLineEdit, QScrollArea, QFormLayout, QGroupBox, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, \
+                            QPushButton, QLineEdit, QScrollArea, \
+                            QFormLayout, QGroupBox, QVBoxLayout
 from PyQt5.QtCore import QSize
-from Backend import search_for_string
-from threading import Thread  # just use threading instead of multiprocessing
-                              # because we just need the GUI to update
-
 import Backend
+from Backend import search_for_string
+from threading import Thread  # we just need the GUI to update
 
-
-
-# GUI CLASSES
 
 class PkeAppWindow(QMainWindow):
 
@@ -47,7 +42,6 @@ class PkeAppWindow(QMainWindow):
 
         self.searchBar = SearchBarWidget(self.searchResults)
         gridLayout.addWidget(self.searchBar, 0, 0)
-
 
     def perform_search(self):
         """
@@ -104,9 +98,9 @@ class SearchBarWidget(QWidget):
         title.setAlignment(QtCore.Qt.AlignCenter)
         gridLayout.addWidget(title, 0, 0)
 
-        """Adding text input"""
-        self.setMinimumSize(QSize(300,270))    
-        self.setWindowTitle("PKE Search Engine") 
+        # Add text input
+        self.setMinimumSize(QSize(300, 270))
+        self.setWindowTitle('PKE Search Engine')
 
         nameLabel = QLabel(self)
         nameLabel.setText('Search For:')
@@ -128,14 +122,13 @@ class SearchBarWidget(QWidget):
         self.terminate_search = [False]
 
         self.startbutton = QPushButton('Start Search', self)
-        self.startbutton.resize(180,32)
-        self.startbutton.move(150,70)
+        self.startbutton.resize(180, 32)
+        self.startbutton.move(150, 70)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
-        
         self.cancelbutton = QPushButton('Cancel Search', self)
-        self.cancelbutton.resize(180,32)
-        self.cancelbutton.move(150,70)
+        self.cancelbutton.resize(180, 32)
+        self.cancelbutton.move(150, 70)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
@@ -190,13 +183,10 @@ class SearchBarWidget(QWidget):
 
 class SearchResultsWidget(QWidget):
 
-    """Initializes the search results box. 
-    The box is scrollable and size adjustable."""
     def __init__(self):
         """PyQt widget containing the list of search results
 
-        This widget might just be a table of SearchResultEntryWidget
-        widgets.
+        The box is scrollable and size adjustable.
         """
         QWidget.__init__(self)
 
@@ -204,7 +194,7 @@ class SearchResultsWidget(QWidget):
         self.filePreview = []
 
         self.rowLayout = QFormLayout()
-        groupBox = QGroupBox("Search Results")
+        groupBox = QGroupBox('Search Results')
 
         groupBox.setLayout(self.rowLayout)
         scrollBox = QScrollArea()
@@ -216,32 +206,34 @@ class SearchResultsWidget(QWidget):
 
         self.setLayout(verticalLayout)
 
-
-    """Clear all results"""
     def clearResults(self):
+        """Clears all results
+        """
         self.fileList = []
         self.filePreview = []
         for _ in range(self.rowLayout.rowCount()):
             self.rowLayout.removeRow(0)
 
+    def addOneResult(self, file_name, preview):
+        """Takes as input two strings and adds them to results box
 
-    """Takes as input a list of tuples (file name, preview) and adds them to the results box.
-    The first column are button widgets
-    The second column are labels"""
-    def addResults(self, rows):
-        for file_name, preview in rows:
-            self.fileList.append(QPushButton(str(file_name)))
-            self.filePreview.append(QLabel(str(preview)))
-            self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
+        The first string is added as a button and the second string
+        is added as a label
 
-
-    """Takes as input two strings and adds them to results box
-    The first string is added as a button and the second string
-    is added as a label"""
-    def addOneResult(self, fileName, previewSearch):
-        self.fileList.append(QPushButton(str(fileName)))
-        self.filePreview.append(QLabel(str(previewSearch)))
+        :param file_name: path to file
+        :param preview: string of search hit context
+        """
+        self.fileList.append(QPushButton(str(file_name)))
+        self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
+
+    def addResults(self, results):
+        """Adds a list of (path, results) pairs to the results box.
+
+        :param results: list of 2-tuples containing (path, search hits)
+        """
+        for file_name, preview in results:
+            self.addOneResult(file_name, preview)
 
 
 # class SearchResultEntryWidget(QWidget):
