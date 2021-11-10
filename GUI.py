@@ -168,29 +168,29 @@ class SearchBarWidget(QWidget):
         self.search_line.resize(200, 32)
         nameLabel.move(10, 20)
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('File Path:')
+        nameLabel1 = QLabel(self)
+        nameLabel1.setText('File Path:')
         self.file_line = QLineEdit(self)
 
         self.file_line.move(400, 20)
         self.file_line.resize(200, 32)
-        nameLabel.move(310, 20)
+        nameLabel1.move(310, 20)
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('Path(s)<br>Excluded:')
-        self.file_line = QLineEdit(self)
+        nameLabel2 = QLabel(self)
+        nameLabel2.setText('Path(s)<br>Excluded:')
+        self.path_line = QLineEdit(self)
 
-        self.file_line.move(90, 100)
-        self.file_line.resize(200, 32)
-        nameLabel.move(10, 100)
+        self.path_line.move(90, 100)
+        self.path_line.resize(200, 32)
+        nameLabel2.move(10, 100)
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('Extension(s)<br>Included:')
-        self.file_line = QLineEdit(self)
+        nameLabel3 = QLabel(self)
+        nameLabel3.setText('Extension(s)<br>Included:')
+        self.ext_line = QLineEdit(self)
 
-        self.file_line.move(400, 100)
-        self.file_line.resize(200, 32)
-        nameLabel.move(310, 100)
+        self.ext_line.move(400, 100)
+        self.ext_line.resize(200, 32)
+        nameLabel3.move(310, 100)
 
         self.search_is_running = False
         self.terminate_search = [False]
