@@ -141,7 +141,7 @@ def search_for_string(result_callback,
     :param exclude_paths: a list of path of directories/files to be excluded
     """
     print('search_for_string(')
-    print('\tkey =', key)
+    print('\tkey = \'%s\'' % key)
     print('\tinclude_paths =', include_paths)
     print('\tinclude_exts =', include_exts)
     print('\texclude_paths =', exclude_paths)

@@ -167,14 +167,16 @@ class SearchBarWidget(QWidget):
         self.search_line = QLineEdit(self)
         self.search_line.move(90, 20)
         self.search_line.resize(200, 32)
+        self.search_line.returnPressed.connect(self.searchButtonClicked)
 
         includePathsLabel = QLabel(self)
-        includePathsLabel.setText('File Path:')
+        includePathsLabel.setText('Path(s)<br>Included:')
         includePathsLabel.move(310, 20)
 
         self.file_line = QLineEdit(self)
         self.file_line.move(400, 20)
         self.file_line.resize(200, 32)
+        self.file_line.returnPressed.connect(self.searchButtonClicked)
 
         excludePathsLabel = QLabel(self)
         excludePathsLabel.setText('Path(s)<br>Excluded:')
@@ -183,6 +185,7 @@ class SearchBarWidget(QWidget):
         self.path_line = QLineEdit(self)
         self.path_line.move(90, 100)
         self.path_line.resize(200, 32)
+        self.path_line.returnPressed.connect(self.searchButtonClicked)
 
         includeExtensionsLabel = QLabel(self)
         includeExtensionsLabel.setText('Extension(s)<br>Included:')
@@ -191,6 +194,7 @@ class SearchBarWidget(QWidget):
         self.ext_line = QLineEdit(self)
         self.ext_line.move(400, 100)
         self.ext_line.resize(200, 32)
+        self.ext_line.returnPressed.connect(self.searchButtonClicked)
 
         self.search_is_running = False
         self.terminate_search = [False]
@@ -230,6 +234,25 @@ class SearchBarWidget(QWidget):
                 exclude_paths,
             ) = self.getSearchInfo()
 
+            # format file extensions properly
+            include_exts = ['.' + ext for ext in include_exts]
+
+            if key == '':
+                self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'search bar is empty')
+                return
+            elif len(include_paths) == 0:
+                self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'no file paths included in search')
+                return
+            elif len(include_exts) == 0:
+                self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'no file extensions included in search')
+                return
+
             self.startbutton.hide()
             self.cancelbutton.show()
             print('starting search')
@@ -251,11 +274,17 @@ class SearchBarWidget(QWidget):
             print('search thread notified of cancellation')
 
     def getSearchInfo(self):
-        # TODO Collect information to pass into search
         key = self.search_line.text()
+
         include_paths = self.file_line.text().split(',')
-        include_exts = ['.txt', '.py']
-        exclude_paths = []
+        include_paths = list(filter(lambda x: x, include_paths))
+
+        include_exts = self.ext_line.text().split(',')
+        include_exts = list(filter(lambda x: x, include_exts))
+
+        exclude_paths = self.path_line.text().split(',')
+        exclude_paths = list(filter(lambda x: x, exclude_paths))
+
         return key, include_paths, include_exts, exclude_paths
 
 
