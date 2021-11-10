@@ -164,24 +164,40 @@ class SearchBarWidget(QWidget):
         nameLabel.setText('Search For:')
         self.search_line = QLineEdit(self)
 
-        self.search_line.move(100, 20)
+        self.search_line.move(90, 20)
         self.search_line.resize(200, 32)
-        nameLabel.move(40, 20)
+        nameLabel.move(10, 20)
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('File Path:')
+        nameLabel1 = QLabel(self)
+        nameLabel1.setText('File Path:')
         self.file_line = QLineEdit(self)
 
-        self.file_line.move(360, 20)
+        self.file_line.move(400, 20)
         self.file_line.resize(200, 32)
-        nameLabel.move(310, 20)
+        nameLabel1.move(310, 20)
+
+        nameLabel2 = QLabel(self)
+        nameLabel2.setText('Path(s)<br>Excluded:')
+        self.path_line = QLineEdit(self)
+
+        self.path_line.move(90, 100)
+        self.path_line.resize(200, 32)
+        nameLabel2.move(10, 100)
+
+        nameLabel3 = QLabel(self)
+        nameLabel3.setText('Extension(s)<br>Included:')
+        self.ext_line = QLineEdit(self)
+
+        self.ext_line.move(400, 100)
+        self.ext_line.resize(200, 32)
+        nameLabel3.move(310, 100)
 
         self.search_is_running = False
         self.terminate_search = [False]
 
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
-        self.startbutton.move(150, 70)
+        self.startbutton.move(195, 150)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
         self.cancelbutton = QPushButton('Cancel Search', self)
