@@ -160,37 +160,37 @@ class SearchBarWidget(QWidget):
         self.setMinimumSize(QSize(300, 270))
         self.setWindowTitle('PKE Search Engine')
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('Search For:')
-        self.search_line = QLineEdit(self)
+        searchLabel = QLabel(self)
+        searchLabel.setText('Search For:')
+        searchLabel.move(10, 20)
 
+        self.search_line = QLineEdit(self)
         self.search_line.move(90, 20)
         self.search_line.resize(200, 32)
-        nameLabel.move(10, 20)
 
-        nameLabel1 = QLabel(self)
-        nameLabel1.setText('File Path:')
+        includePathsLabel = QLabel(self)
+        includePathsLabel.setText('File Path:')
+        includePathsLabel.move(310, 20)
+
         self.file_line = QLineEdit(self)
-
         self.file_line.move(400, 20)
         self.file_line.resize(200, 32)
-        nameLabel1.move(310, 20)
 
-        nameLabel2 = QLabel(self)
-        nameLabel2.setText('Path(s)<br>Excluded:')
+        excludePathsLabel = QLabel(self)
+        excludePathsLabel.setText('Path(s)<br>Excluded:')
+        excludePathsLabel.move(10, 100)
+
         self.path_line = QLineEdit(self)
-
         self.path_line.move(90, 100)
         self.path_line.resize(200, 32)
-        nameLabel2.move(10, 100)
 
-        nameLabel3 = QLabel(self)
-        nameLabel3.setText('Extension(s)<br>Included:')
+        includeExtensionsLabel = QLabel(self)
+        includeExtensionsLabel.setText('Extension(s)<br>Included:')
+        includeExtensionsLabel.move(310, 100)
+
         self.ext_line = QLineEdit(self)
-
         self.ext_line.move(400, 100)
         self.ext_line.resize(200, 32)
-        nameLabel3.move(310, 100)
 
         self.search_is_running = False
         self.terminate_search = [False]
@@ -202,7 +202,7 @@ class SearchBarWidget(QWidget):
 
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
-        self.cancelbutton.move(150, 70)
+        self.cancelbutton.move(195, 150)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
