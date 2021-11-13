@@ -379,7 +379,12 @@ class SearchResultsWidget(QWidget):
         """Returns True if file path is not directory
         :param editorPath: the file path to be verified
         """
-        return os.path.isfile(editorPath)
+        fileName, fileExtension = os.path.splitext(editorPath)
+
+        if os.path.isfile(editorPath) and fileExtension == '.exe':
+            return True
+        else:
+            return False
 
     def setEditor(self, editorPath):
         """Returns true if editor has been set
