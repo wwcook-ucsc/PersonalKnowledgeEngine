@@ -32,6 +32,7 @@ def search_file_for_string(path: str, key: str) -> list:
         #     mmap_obj.find(b" the ")
         for i, line in enumerate(f):
             if key in line:  # if this line contains the key at least once
+                line.replace(key,"\033[1m"+key+"\033[0m")
                 key_instances.append((i+1, line))
     return key_instances
 
@@ -141,7 +142,7 @@ def search_for_string(result_callback,
     :param exclude_paths: a list of path of directories/files to be excluded
     """
     print('search_for_string(')
-    print('\tkey =', key)
+    print('\tkey = \'%s\'' % key)
     print('\tinclude_paths =', include_paths)
     print('\tinclude_exts =', include_exts)
     print('\texclude_paths =', exclude_paths)
