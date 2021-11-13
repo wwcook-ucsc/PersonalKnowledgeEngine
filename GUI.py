@@ -9,6 +9,8 @@ https://www.pythonguis.com/tutorials/multithreading-pyqt-applications-qthreadpoo
 
 
 import sys
+import subprocess
+import os 
 import traceback
 from PyQt5 import QtCore
 from PyQt5.QtCore import (
@@ -147,6 +149,8 @@ class SearchBarWidget(QWidget):
         """
         QWidget.__init__(self)
 
+        self.Editor = "No Editor"
+
         self.app_widget = app_widget
 
         gridLayout = QGridLayout(self)
@@ -196,6 +200,20 @@ class SearchBarWidget(QWidget):
         self.ext_line.resize(200, 32)
         self.ext_line.returnPressed.connect(self.searchButtonClicked)
 
+        editorLabel = QLabel(self)
+        editorLabel.setText('Editor Path:')
+        editorLabel.move(10, 230)
+
+        self.currentEditor = QLabel(self)
+        self.currentEditor.setText("Current Editor: " + self.Editor)
+        self.currentEditor.move(300, 230)
+        self.currentEditor.resize(200, 32)
+
+        self.editor_line = QLineEdit(self)
+        self.editor_line.move(90, 230)
+        self.editor_line.resize(200, 32)
+        self.editor_line.returnPressed.connect(self.searchButtonClicked)
+
         self.search_is_running = False
         self.terminate_search = [False]
 
@@ -234,6 +252,10 @@ class SearchBarWidget(QWidget):
                 exclude_paths,
             ) = self.getSearchInfo()
 
+            # sets the editor program
+            if self.app_widget.searchResults.setEditor(self.editor_line.text()):
+                self.currentEditor.setText("Current Editor: " + os.path.basename(self.editor_line.text()))
+
             # format file extensions properly
             include_exts = ['.' + ext for ext in include_exts]
 
@@ -265,6 +287,7 @@ class SearchBarWidget(QWidget):
                 include_exts,
                 exclude_paths,
             )
+
 
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
@@ -299,6 +322,8 @@ class SearchResultsWidget(QWidget):
 
         self.fileList = []
         self.filePreview = []
+        self.editorSet = False
+        self.editor = ""
 
         self.rowLayout = QFormLayout()
         groupBox = QGroupBox('Search Results')
@@ -330,9 +355,11 @@ class SearchResultsWidget(QWidget):
         :param file_name: path to file
         :param preview: string of search hit context
         """
+
         self.fileList.append(QPushButton(str(file_name)))
         self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
+        self.connectOneButton(self.fileList[-1])
 
     def addResults(self, results):
         """Adds a list of (path, results) pairs to the results box.
@@ -342,6 +369,47 @@ class SearchResultsWidget(QWidget):
         for file_name, preview in results:
             self.addOneResult(file_name, preview)
 
+    def pathValid(self, filePath):
+        """Returns True if file path exists
+        :param filePath: the file path to be verified
+        """
+        return os.path.exists(filePath)
+
+    def editorValid(self, editorPath):
+        """Returns True if file path is not directory
+        :param editorPath: the file path to be verified
+        """
+        return os.path.isfile(editorPath)
+
+    def setEditor(self, editorPath):
+        """Returns true if editor has been set
+        :param editorPath: the file path to be set
+        """
+        if self.editorValid(editorPath):
+            self.editor = editorPath
+            self.editorSet = True
+            print("Editor set!\n")
+            return True
+        else:
+            return False
+
+    def openWithEditor(self, file):
+        """Opens input file using the currently set editor
+        :param file: the file path of the file to open
+        """
+        if self.editorSet == True and self.pathValid(file):
+            subprocess.Popen([self.editor, file])
+
+    def connectOneButton(self, fileButton):
+        """Connects the button to the openWithEditor function
+        :param fileButton: the button widget to be connected
+        """
+        if self.editorValid(self.editor):
+            fileButton.clicked.connect(lambda: self.openWithEditor(fileButton.text()))
+
+    def connectAllButtons(self):
+        for filePath in self.fileList:
+            self.connectOneButton(filePath)
 
 # class SearchResultEntryWidget(QWidget):
 #
