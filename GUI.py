@@ -151,6 +151,8 @@ class SearchBarWidget(QWidget):
 
         self.Editor = "No Editor"
 
+        self.saved_searches = []
+
         self.app_widget = app_widget
 
         gridLayout = QGridLayout(self)
@@ -251,6 +253,14 @@ class SearchBarWidget(QWidget):
                 include_exts,
                 exclude_paths,
             ) = self.getSearchInfo()
+
+            #adds search info to list of previous searches
+            self.saved_searches.append(
+                (key,
+                include_paths,
+                include_exts,
+                exclude_paths,)
+                )
 
             # sets the editor program
             if self.app_widget.searchResults.setEditor(self.editor_line.text()):
