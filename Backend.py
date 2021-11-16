@@ -8,6 +8,7 @@ GUI Events call functions housed in this file; serves "GUI"
 # IMPORTS (remember to list installed packages in "requirements.txt")
 from pathlib import Path
 import ntpath
+import sys
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
@@ -100,20 +101,27 @@ def foreach_file(func,
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
-        nonlocal terminate_early
-        if terminate_early[0]:
-            return
-        if is_excluded(path, exclude_paths):
-            return
-        if path.is_dir():
-            for subpath in path.glob('*'):
-                sub_exclude_paths = [
-                    p for p in exclude_paths if path in p.parents
-                ]
-                rec_helper(subpath, sub_exclude_paths)
-        else:
-            if is_extension_included(path):
-                func(str(path))
+        try:
+            nonlocal terminate_early
+            if terminate_early[0]:
+                return
+            if is_excluded(path, exclude_paths):
+                return
+            if path.is_dir():
+                for subpath in path.glob('*'):
+                    sub_exclude_paths = [
+                        p for p in exclude_paths if path in p.parents
+                    ]
+                    rec_helper(subpath, sub_exclude_paths)
+            else:
+                if is_extension_included(path):
+                    func(str(path))
+        except OSError as e:
+            print(e, file=sys.stderr)
+        except UnicodeDecodeError as e:
+            print('{}: {}'.format(e, path))
+        except Exception as e:
+            print(type(e), e, file=sys.stderr)
 
     for path in include_paths:
         if path.is_dir():
