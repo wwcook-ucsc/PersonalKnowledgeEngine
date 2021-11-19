@@ -33,7 +33,7 @@ def search_file_for_string(path: str, key: str) -> list:
         #     mmap_obj.find(b" the ")
         for i, line in enumerate(f):
             if key in line:  # if this line contains the key at least once
-                bolded_line = line.replace(key,"\033[1m" + key + "\033[0m")
+                bolded_line = line.replace(key, "<b>"+key+"</b>")
                 key_instances.append((i+1, bolded_line))
     return key_instances
 

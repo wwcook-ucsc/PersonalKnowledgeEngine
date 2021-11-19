@@ -186,33 +186,33 @@ class SearchBarWidget(QWidget):
 
         excludePathsLabel = QLabel(self)
         excludePathsLabel.setText('Path(s)<br>Excluded:')
-        excludePathsLabel.move(10, 100)
+        excludePathsLabel.move(10, 85)
 
         self.path_line = QLineEdit(self)
-        self.path_line.move(90, 100)
+        self.path_line.move(90, 85)
         self.path_line.resize(200, 32)
         self.path_line.returnPressed.connect(self.searchButtonClicked)
 
         includeExtensionsLabel = QLabel(self)
         includeExtensionsLabel.setText('Extension(s)<br>Included:')
-        includeExtensionsLabel.move(310, 100)
+        includeExtensionsLabel.move(310, 85)
 
         self.ext_line = QLineEdit(self)
-        self.ext_line.move(400, 100)
+        self.ext_line.move(400, 85)
         self.ext_line.resize(200, 32)
         self.ext_line.returnPressed.connect(self.searchButtonClicked)
 
         editorLabel = QLabel(self)
         editorLabel.setText('Editor Path:')
-        editorLabel.move(10, 230)
+        editorLabel.move(10, 150)
 
         self.currentEditor = QLabel(self)
         self.currentEditor.setText("Current Editor: " + self.Editor)
-        self.currentEditor.move(300, 230)
+        self.currentEditor.move(310, 150)
         self.currentEditor.resize(200, 32)
 
         self.editor_line = QLineEdit(self)
-        self.editor_line.move(90, 230)
+        self.editor_line.move(90, 150)
         self.editor_line.resize(200, 32)
         self.editor_line.returnPressed.connect(self.searchButtonClicked)
 
@@ -221,7 +221,7 @@ class SearchBarWidget(QWidget):
 
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
-        self.startbutton.move(195, 150)
+        self.startbutton.move(195, 230)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
         self.cancelbutton = QPushButton('Cancel Search', self)
@@ -305,9 +305,11 @@ class SearchBarWidget(QWidget):
         if self.search_is_running and not self.terminate_search[0]:
             self.terminate_search[0] = True
             print('search thread notified of cancellation')
-
+    
+    
     def getSearchInfo(self):
         key = self.search_line.text()
+
 
         include_paths = self.file_line.text().split(',')
         include_paths = list(filter(lambda x: x, include_paths))
@@ -319,6 +321,7 @@ class SearchBarWidget(QWidget):
         exclude_paths = list(filter(lambda x: x, exclude_paths))
 
         return key, include_paths, include_exts, exclude_paths
+
 
 
 class SearchResultsWidget(QWidget):
