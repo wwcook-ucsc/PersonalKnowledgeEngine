@@ -135,7 +135,9 @@ class PkeAppWindow(QMainWindow):
         worker.signals.search_hit.connect(self.searchResults.addOneResult)
         worker.signals.finished.connect(self.searchBar.searchCompletedCallback)
 
-        self.searchResults.clearResults()
+        # self.searchResults.clearResults()
+        self.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
+    
 
         self.threadpool.start(worker)
 
@@ -270,17 +272,20 @@ class SearchBarWidget(QWidget):
             include_exts = ['.' + ext for ext in include_exts]
 
             if key == '':
-                self.app_widget.searchResults.clearResults()
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'search bar is empty')
                 return
             elif len(include_paths) == 0:
-                self.app_widget.searchResults.clearResults()
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'no file paths included in search')
                 return
             elif len(include_exts) == 0:
-                self.app_widget.searchResults.clearResults()
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'no file extensions included in search')
                 return
@@ -350,6 +355,16 @@ class SearchResultsWidget(QWidget):
         verticalLayout.addWidget(scrollBox)
 
         self.setLayout(verticalLayout)
+
+    def addHeader(self, key, include_paths, include_exts, exclude_paths):
+        """Writes a header to the search results box that contains the inputs for that search
+        """
+        # button = QPushButton(search_string)
+        label = QLabel("Search term: " + str(key) + 
+                        ", Path: " + str(include_paths) + 
+                        ", Included Extensions: " + str(include_exts)  + 
+                        ", Excluded Paths: " + str(exclude_paths) )
+        self.rowLayout.addRow(label)
 
     def clearResults(self):
         """Clears all results
