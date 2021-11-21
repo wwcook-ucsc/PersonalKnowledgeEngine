@@ -226,7 +226,7 @@ class SearchBarWidget(QWidget):
 
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
-        self.cancelbutton.move(195, 150)
+        self.cancelbutton.move(195, 230)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
