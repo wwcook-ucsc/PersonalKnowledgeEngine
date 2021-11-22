@@ -9,6 +9,8 @@ https://www.pythonguis.com/tutorials/multithreading-pyqt-applications-qthreadpoo
 
 
 import sys
+import subprocess
+import os 
 import traceback
 from PyQt5 import QtCore
 from PyQt5.QtCore import (
@@ -133,7 +135,9 @@ class PkeAppWindow(QMainWindow):
         worker.signals.search_hit.connect(self.searchResults.addOneResult)
         worker.signals.finished.connect(self.searchBar.searchCompletedCallback)
 
-        self.searchResults.clearResults()
+        # self.searchResults.clearResults()
+        self.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
+    
 
         self.threadpool.start(worker)
 
@@ -146,6 +150,10 @@ class SearchBarWidget(QWidget):
         :param app_widget: main app window widget instance
         """
         QWidget.__init__(self)
+
+        self.Editor = "No Editor"
+
+        self.saved_searches = []
 
         self.app_widget = app_widget
 
@@ -160,49 +168,67 @@ class SearchBarWidget(QWidget):
         self.setMinimumSize(QSize(300, 270))
         self.setWindowTitle('PKE Search Engine')
 
-        nameLabel = QLabel(self)
-        nameLabel.setText('Search For:')
-        self.search_line = QLineEdit(self)
+        searchLabel = QLabel(self)
+        searchLabel.setText('Search For:')
+        searchLabel.move(10, 20)
 
+        self.search_line = QLineEdit(self)
         self.search_line.move(90, 20)
         self.search_line.resize(200, 32)
-        nameLabel.move(10, 20)
+        self.search_line.returnPressed.connect(self.searchButtonClicked)
 
-        nameLabel1 = QLabel(self)
-        nameLabel1.setText('File Path:')
+        includePathsLabel = QLabel(self)
+        includePathsLabel.setText('Path(s)<br>Included:')
+        includePathsLabel.move(310, 20)
+
         self.file_line = QLineEdit(self)
-
         self.file_line.move(400, 20)
         self.file_line.resize(200, 32)
-        nameLabel1.move(310, 20)
+        self.file_line.returnPressed.connect(self.searchButtonClicked)
 
-        nameLabel2 = QLabel(self)
-        nameLabel2.setText('Path(s)<br>Excluded:')
+        excludePathsLabel = QLabel(self)
+        excludePathsLabel.setText('Path(s)<br>Excluded:')
+        excludePathsLabel.move(10, 85)
+
         self.path_line = QLineEdit(self)
-
-        self.path_line.move(90, 100)
+        self.path_line.move(90, 85)
         self.path_line.resize(200, 32)
-        nameLabel2.move(10, 100)
+        self.path_line.returnPressed.connect(self.searchButtonClicked)
 
-        nameLabel3 = QLabel(self)
-        nameLabel3.setText('Extension(s)<br>Included:')
+        includeExtensionsLabel = QLabel(self)
+        includeExtensionsLabel.setText('Extension(s)<br>Included:')
+        includeExtensionsLabel.move(310, 85)
+
         self.ext_line = QLineEdit(self)
-
-        self.ext_line.move(400, 100)
+        self.ext_line.move(400, 85)
         self.ext_line.resize(200, 32)
-        nameLabel3.move(310, 100)
+        self.ext_line.returnPressed.connect(self.searchButtonClicked)
+
+        editorLabel = QLabel(self)
+        editorLabel.setText('Editor Path:')
+        editorLabel.move(10, 150)
+
+        self.currentEditor = QLabel(self)
+        self.currentEditor.setText("Current Editor: " + self.Editor)
+        self.currentEditor.move(310, 150)
+        self.currentEditor.resize(200, 32)
+
+        self.editor_line = QLineEdit(self)
+        self.editor_line.move(90, 150)
+        self.editor_line.resize(200, 32)
+        self.editor_line.returnPressed.connect(self.searchButtonClicked)
 
         self.search_is_running = False
         self.terminate_search = [False]
 
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
-        self.startbutton.move(195, 150)
+        self.startbutton.move(195, 230)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
-        self.cancelbutton.move(150, 70)
+        self.cancelbutton.move(195, 230)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
@@ -230,6 +256,40 @@ class SearchBarWidget(QWidget):
                 exclude_paths,
             ) = self.getSearchInfo()
 
+            #adds search info to list of previous searches
+            self.saved_searches.append(
+                (key,
+                include_paths,
+                include_exts,
+                exclude_paths,)
+                )
+
+            # sets the editor program
+            if self.app_widget.searchResults.setEditor(self.editor_line.text()):
+                self.currentEditor.setText("Current Editor: " + os.path.basename(self.editor_line.text()))
+
+            # format file extensions properly
+            include_exts = ['.' + ext for ext in include_exts]
+
+            if key == '':
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'search bar is empty')
+                return
+            elif len(include_paths) == 0:
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'no file paths included in search')
+                return
+            elif len(include_exts) == 0:
+                # self.app_widget.searchResults.clearResults()
+                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                self.app_widget.searchResults.addOneResult(
+                    '!', 'no file extensions included in search')
+                return
+
             self.startbutton.hide()
             self.cancelbutton.show()
             print('starting search')
@@ -243,20 +303,30 @@ class SearchBarWidget(QWidget):
                 exclude_paths,
             )
 
+
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
         """
         if self.search_is_running and not self.terminate_search[0]:
             self.terminate_search[0] = True
             print('search thread notified of cancellation')
-
+    
+    
     def getSearchInfo(self):
-        # TODO Collect information to pass into search
         key = self.search_line.text()
+
+
         include_paths = self.file_line.text().split(',')
-        include_exts = ['.txt', '.py']
-        exclude_paths = []
+        include_paths = list(filter(lambda x: x, include_paths))
+
+        include_exts = self.ext_line.text().split(',')
+        include_exts = list(filter(lambda x: x, include_exts))
+
+        exclude_paths = self.path_line.text().split(',')
+        exclude_paths = list(filter(lambda x: x, exclude_paths))
+
         return key, include_paths, include_exts, exclude_paths
+
 
 
 class SearchResultsWidget(QWidget):
@@ -270,6 +340,8 @@ class SearchResultsWidget(QWidget):
 
         self.fileList = []
         self.filePreview = []
+        self.editorSet = False
+        self.editor = ""
 
         self.rowLayout = QFormLayout()
         groupBox = QGroupBox('Search Results')
@@ -283,6 +355,16 @@ class SearchResultsWidget(QWidget):
         verticalLayout.addWidget(scrollBox)
 
         self.setLayout(verticalLayout)
+
+    def addHeader(self, key, include_paths, include_exts, exclude_paths):
+        """Writes a header to the search results box that contains the inputs for that search
+        """
+        # button = QPushButton(search_string)
+        label = QLabel("Search term: " + str(key) + 
+                        ", Path: " + str(include_paths) + 
+                        ", Included Extensions: " + str(include_exts)  + 
+                        ", Excluded Paths: " + str(exclude_paths) )
+        self.rowLayout.addRow(label)
 
     def clearResults(self):
         """Clears all results
@@ -301,9 +383,11 @@ class SearchResultsWidget(QWidget):
         :param file_name: path to file
         :param preview: string of search hit context
         """
+
         self.fileList.append(QPushButton(str(file_name)))
         self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
+        self.connectOneButton(self.fileList[-1])
 
     def addResults(self, results):
         """Adds a list of (path, results) pairs to the results box.
@@ -313,6 +397,52 @@ class SearchResultsWidget(QWidget):
         for file_name, preview in results:
             self.addOneResult(file_name, preview)
 
+    def pathValid(self, filePath):
+        """Returns True if file path exists
+        :param filePath: the file path to be verified
+        """
+        return os.path.exists(filePath)
+
+    def editorValid(self, editorPath):
+        """Returns True if file path is not directory
+        :param editorPath: the file path to be verified
+        """
+        fileName, fileExtension = os.path.splitext(editorPath)
+
+        if os.path.isfile(editorPath) and fileExtension == '.exe':
+            return True
+        else:
+            return False
+
+    def setEditor(self, editorPath):
+        """Returns true if editor has been set
+        :param editorPath: the file path to be set
+        """
+        if self.editorValid(editorPath):
+            self.editor = editorPath
+            self.editorSet = True
+            print("Editor set!\n")
+            return True
+        else:
+            return False
+
+    def openWithEditor(self, file):
+        """Opens input file using the currently set editor
+        :param file: the file path of the file to open
+        """
+        if self.editorSet == True and self.pathValid(file):
+            subprocess.Popen([self.editor, file])
+
+    def connectOneButton(self, fileButton):
+        """Connects the button to the openWithEditor function
+        :param fileButton: the button widget to be connected
+        """
+        if self.editorValid(self.editor):
+            fileButton.clicked.connect(lambda: self.openWithEditor(fileButton.text()))
+
+    def connectAllButtons(self):
+        for filePath in self.fileList:
+            self.connectOneButton(filePath)
 
 # class SearchResultEntryWidget(QWidget):
 #
