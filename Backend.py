@@ -24,6 +24,7 @@ def search_file_for_string(path: str, key: str) -> list:
     :return: [(line# of key occurrence #1, full line of key occurrence #1), ...]
     """
     key_instances = []
+    bolded_key = "<b>"+key+"</b>"
     with open(path) as f:
         # TODO: use mmap to allow searching across lines?
         # TODO: note that regex can also be done with mmap
@@ -33,8 +34,29 @@ def search_file_for_string(path: str, key: str) -> list:
         #     mmap_obj.find(b" the ")
         for i, line in enumerate(f):
             if key in line:  # if this line contains the key at least once
-                bolded_line = line.replace(key, "<b>"+key+"</b>")
-                key_instances.append((i+1, bolded_line))
+                key_value = 0
+                key_counter = 0
+                trimmed_array = []
+                bolded_line = line.replace(key, bolded_key)
+                split_line = bolded_line.split(" ")
+                for words in split_line:
+                    if bolded_key in words:
+                        key_value = key_counter
+                        break
+                    key_counter += 1
+                split_key = []
+                if len(split_line) == 1:
+                    split_key = split_line
+                elif len(split_line) > 1:
+                    if key_value < len(split_line)-1:
+                        split_key = split_line[key_value:key_value+2]
+                    elif key_value == len(split_line) - 1:
+                        split_key = split_line[key_value-1:key_value+1]
+                for word in split_key:
+                    trimmed_array.append(word)
+                trimmed_line =  "..."+" ".join(trimmed_array)+"..."
+                key_instances.append((i+1, trimmed_line))
+    
     return key_instances
 
 
