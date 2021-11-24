@@ -383,8 +383,9 @@ class SearchResultsWidget(QWidget):
         :param file_name: path to file
         :param preview: string of search hit context
         """
-
-        self.fileList.append(QPushButton(str(file_name)))
+        fileArray = file_name.split('/')
+        fileLength = len(fileArray)        
+        self.fileList.append(QPushButton("..."+"/".join(fileArray[3:fileLength])))
         self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
         self.connectOneButton(self.fileList[-1])
