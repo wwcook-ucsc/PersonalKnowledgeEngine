@@ -223,14 +223,19 @@ class SearchBarWidget(QWidget):
 
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
-        self.startbutton.move(195, 230)
+        self.startbutton.move(195, 220)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
-        self.cancelbutton.move(195, 230)
+        self.cancelbutton.move(195, 220)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
+
+        self.clearbutton = QPushButton('Clear Search', self)
+        self.clearbutton.resize(180, 32)
+        self.clearbutton.move(195, 245)
+        self.clearbutton.clicked.connect(self.app_widget.searchResults.clearResults)
 
     def searchResultCallback(self, path, output_instances):
         if self.search_is_running and not self.terminate_search[0]:
