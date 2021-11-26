@@ -224,13 +224,11 @@ class SearchBarWidget(QWidget):
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
         self.startbutton.move(195, 220)
-        self.startbutton.move(195, 230)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
         self.cancelbutton.move(195, 220)
-        self.cancelbutton.move(195, 230)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
@@ -393,8 +391,6 @@ class SearchResultsWidget(QWidget):
         fileArray = file_name.split('/')
         fileLength = len(fileArray)        
         self.fileList.append(QPushButton("..."+"/".join(fileArray[3:fileLength])))
-
-        self.fileList.append(QPushButton(str(file_name)))
         self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
         self.connectOneButton(self.fileList[-1])

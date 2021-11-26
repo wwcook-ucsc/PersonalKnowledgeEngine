@@ -56,13 +56,7 @@ def search_file_for_string(path: str, key: str) -> list:
                     trimmed_array.append(word)
                 trimmed_line =  "..."+" ".join(trimmed_array)+"..."
                 key_instances.append((trimmed_line, i+1))
-                        split_key = split_line[key_value:key_value+2]
-                    elif key_value == len(split_line) - 1:
-                        split_key = split_line[key_value-1:key_value+1]
-                for word in split_key:
-                    trimmed_array.append(word)
-                trimmed_line =  "..."+" ".join(trimmed_array)+"..."
-                key_instances.append((i+1, trimmed_line))
+    
     return key_instances
 
 
