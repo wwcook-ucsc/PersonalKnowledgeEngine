@@ -277,20 +277,20 @@ class SearchBarWidget(QWidget):
             include_exts = ['.' + ext for ext in include_exts]
 
             if key == '':
-                # self.app_widget.searchResults.clearResults()
-                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                #self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'search bar is empty')
                 return
             elif len(include_paths) == 0:
-                # self.app_widget.searchResults.clearResults()
-                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                #self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'no file paths included in search')
                 return
             elif len(include_exts) == 0:
-                # self.app_widget.searchResults.clearResults()
-                self.app_widget.seachResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                #self.app_widget.searchResults.clearResults()
+                self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'no file extensions included in search')
                 return
