@@ -164,10 +164,11 @@ class SearchBarWidget(QWidget):
         title.setAlignment(QtCore.Qt.AlignCenter)
         gridLayout.addWidget(title, 0, 0)
 
-        # Add text input
+        # The basic GUI elements
         self.setMinimumSize(QSize(300, 270))
         self.setWindowTitle('PKE Search Engine')
 
+        # Text box to put in what to search for
         searchLabel = QLabel(self)
         searchLabel.setText('Search For:')
         searchLabel.move(10, 20)
@@ -177,6 +178,7 @@ class SearchBarWidget(QWidget):
         self.search_line.resize(200, 32)
         self.search_line.returnPressed.connect(self.searchButtonClicked)
 
+        # Text box to put in which paths to include
         includePathsLabel = QLabel(self)
         includePathsLabel.setText('Path(s)<br>Included:')
         includePathsLabel.move(310, 20)
@@ -186,6 +188,7 @@ class SearchBarWidget(QWidget):
         self.file_line.resize(200, 32)
         self.file_line.returnPressed.connect(self.searchButtonClicked)
 
+        # Text box to put in which paths to exclude
         excludePathsLabel = QLabel(self)
         excludePathsLabel.setText('Path(s)<br>Excluded:')
         excludePathsLabel.move(10, 85)
@@ -195,6 +198,7 @@ class SearchBarWidget(QWidget):
         self.path_line.resize(200, 32)
         self.path_line.returnPressed.connect(self.searchButtonClicked)
 
+        # Text box to put in which extensions to include
         includeExtensionsLabel = QLabel(self)
         includeExtensionsLabel.setText('Extension(s)<br>Included:')
         includeExtensionsLabel.move(310, 85)
