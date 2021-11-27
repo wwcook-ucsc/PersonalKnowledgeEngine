@@ -388,12 +388,12 @@ class SearchResultsWidget(QWidget):
         :param file_name: path to file
         :param preview: string of search hit context
         """
-        fileArray = file_name.split('/')
-        fileLength = len(fileArray)        
-        self.fileList.append(QPushButton("..."+"/".join(fileArray[3:fileLength])))
+        fileBase = os.path.basename(file_name) 
+        self.fileList.append(QPushButton(fileBase))
+        self.fileList[-1].setToolTip(file_name)
         self.filePreview.append(QLabel(str(preview)))
         self.rowLayout.addRow(self.fileList[-1], self.filePreview[-1])
-        self.connectOneButton(self.fileList[-1])
+        self.connectOneButton(self.fileList[-1], file_name)
 
     def addResults(self, results):
         """Adds a list of (path, results) pairs to the results box.
@@ -410,7 +410,7 @@ class SearchResultsWidget(QWidget):
         return os.path.exists(filePath)
 
     def editorValid(self, editorPath):
-        """Returns True if file path is not directory
+        """Returns True if file path ends in a .exe file
         :param editorPath: the file path to be verified
         """
         fileName, fileExtension = os.path.splitext(editorPath)
@@ -439,12 +439,13 @@ class SearchResultsWidget(QWidget):
         if self.editorSet == True and self.pathValid(file):
             subprocess.Popen([self.editor, file])
 
-    def connectOneButton(self, fileButton):
+    def connectOneButton(self, fileButton, filePath):
         """Connects the button to the openWithEditor function
         :param fileButton: the button widget to be connected
+        :param filePath: the file path of the to connect the button with
         """
         if self.editorValid(self.editor):
-            fileButton.clicked.connect(lambda: self.openWithEditor(fileButton.text()))
+            fileButton.clicked.connect(lambda: self.openWithEditor(filePath))
 
     def connectAllButtons(self):
         for filePath in self.fileList:
