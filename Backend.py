@@ -34,11 +34,15 @@ def search_file_for_string(path: str, key: str) -> list:
         #     mmap_obj.find(b" the ")
         for i, line in enumerate(f):
             if key in line:  # if this line contains the key at least once
+                # Bold any instances of the key inside the line
                 key_value = 0
                 key_counter = 0
                 trimmed_array = []
                 bolded_line = line.replace(key, bolded_key)
                 split_line = bolded_line.split(" ")
+
+                # Shorten the line to only contain the first instance of the key term 
+                # and the first few words afterwards
                 for words in split_line:
                     if bolded_key in words:
                         key_value = key_counter
