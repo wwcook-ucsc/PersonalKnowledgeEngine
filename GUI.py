@@ -447,27 +447,4 @@ class SearchResultsWidget(QWidget):
         """
         if self.editorValid(self.editor):
             fileButton.clicked.connect(lambda: self.openWithEditor(filePath))
-
-    def connectAllButtons(self):
-        for filePath in self.fileList:
-            self.connectOneButton(filePath)
-
-# class SearchResultEntryWidget(QWidget):
-#
-#     def __init__(self):
-#         """PyQt widget containing a single search result
-#
-#         This might contain, for example: the name of the file and/or path to
-#         the file; an excerpt from the file, showing what the search matched;
-#         a button to open the file location in the file browser; a button to
-#         open the file in a text editor.
-#         """
-#         QWidget.__init__(self)
-#
-#         gridLayout = QGridLayout(self)
-#         self.setLayout(gridLayout)
-#
-#         title = QLabel('This is a single search result', self)
-#         title.setAlignment(QtCore.Qt.AlignCenter)
-#         gridLayout.addWidget(title, 0, 0)
-#
+            
