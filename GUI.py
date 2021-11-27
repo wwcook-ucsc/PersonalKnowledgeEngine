@@ -290,10 +290,11 @@ class SearchBarWidget(QWidget):
                 return
             elif len(include_exts) == 0:
                 #self.app_widget.searchResults.clearResults()
-                self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
-                self.app_widget.searchResults.addOneResult(
-                    '!', 'no file extensions included in search')
-                return
+                include_exts = None
+                # self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
+                # self.app_widget.searchResults.addOneResult(
+                #     '!', 'no file extensions included in search')
+                # return
 
             self.startbutton.hide()
             self.cancelbutton.show()

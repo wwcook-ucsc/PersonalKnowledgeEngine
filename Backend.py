@@ -92,8 +92,6 @@ def foreach_file(func,
     Paths in include_paths will all be included regardless of exclude_paths
     and include_exts.
     """
-    if include_exts is None:
-        include_exts = []
     if exclude_paths is None:
         exclude_paths = []
 
@@ -120,6 +118,8 @@ def foreach_file(func,
         if include_exts is not None:
             if path.suffix in include_exts:
                 return True
+        else:
+            return True
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
@@ -141,7 +141,8 @@ def foreach_file(func,
         except OSError as e:
             print(e, file=sys.stderr)
         except UnicodeDecodeError as e:
-            print('{}: {}'.format(e, path))
+            # print('{}: {}'.format(e, path))
+            pass
         except Exception as e:
             print(type(e), e, file=sys.stderr)
 
