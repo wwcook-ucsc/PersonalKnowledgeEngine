@@ -10,7 +10,7 @@ https://www.pythonguis.com/tutorials/multithreading-pyqt-applications-qthreadpoo
 
 import sys
 import subprocess
-import os 
+import os
 import traceback
 from PyQt5 import QtCore
 from PyQt5.QtCore import (
@@ -60,7 +60,16 @@ class BackendWorker(QRunnable):
 
     def __init__(self, terminate_search, key,
                  include_paths, include_exts, exclude_paths):
-        """Calls the backend search function in a separate thread
+        """Runs and communicates with the backend in a new thread.
+
+        :param terminate_search: single-element list containing a bool that
+                                 tells the backend whether to terminate the
+                                 search early
+        :param key: string to search for
+        :param include_paths: list of paths to include in the search
+        :param include_exts: list of file extensions in the form e.g. '.txt'
+                             may instead be `None` to search all files
+        :param exclude_paths: list of paths to exclude from the search
         """
         super(BackendWorker, self).__init__()
         self.terminate_search = terminate_search
@@ -71,14 +80,27 @@ class BackendWorker(QRunnable):
         self.signals = BackendWorkerSignals()
 
     def resultCallback(self, path, search_hits):
+        """Emits a `search_hit` signal containing the file path and context.
+
+        Called by the backend whenever a search hit is found.
+
+        :param path: path of file containing the search hit
+        :param search_hits: info about the file's context of the search hit
+        """
         for hit in search_hits:
             self.signals.search_hit.emit(path, hit)
 
     def finishedCallback(self):
+        """Emits a `finished` signal.
+
+        Called by the backend when the search completes.
+        """
         self.signals.finished.emit()
 
     @pyqtSlot()
     def run(self):
+        """Calls the backend search function in a separate thread
+        """
         try:
             search_for_string(
                 self.resultCallback,
@@ -124,6 +146,12 @@ class PkeAppWindow(QMainWindow):
 
     def runSearch(self, key, include_paths, include_exts, exclude_paths):
         """Spawns a worker thread in the threadpool for the backend
+
+        :param key: string to search for
+        :param include_paths: list of paths to include in the search
+        :param include_exts: list of file extensions in the form e.g. '.txt'
+                             may instead be `None` to search all files
+        :param exclude_paths: list of paths to exclude from the search
         """
         worker = BackendWorker(
             self.searchBar.terminate_search,
@@ -137,7 +165,6 @@ class PkeAppWindow(QMainWindow):
 
         # self.searchResults.clearResults()
         self.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
-    
 
         self.threadpool.start(worker)
 
@@ -245,13 +272,11 @@ class SearchBarWidget(QWidget):
         self.clearbutton.move(195, 245)
         self.clearbutton.clicked.connect(self.app_widget.searchResults.clearResults)
 
-    def searchResultCallback(self, path, output_instances):
-        if self.search_is_running and not self.terminate_search[0]:
-            print('result found in file:', path)
-            print('result:', output_instances)
-            self.search_results_widget.addOneResult(path, output_instances)
-
     def searchCompletedCallback(self):
+        """Updates the GUI to reflect the completion of a search
+
+        Called by Qt through the BackendWorker class
+        """
         if self.search_is_running:
             self.search_is_running = False
             self.cancelbutton.hide()
@@ -310,18 +335,17 @@ class SearchBarWidget(QWidget):
                 exclude_paths,
             )
 
-
     def cancelButtonClicked(self):
         """Function that's called when the cancel button is pressed.
         """
         if self.search_is_running and not self.terminate_search[0]:
             self.terminate_search[0] = True
             print('search thread notified of cancellation')
-    
-    
-    def getSearchInfo(self):
-        key = self.search_line.text()
 
+    def getSearchInfo(self):
+        """Collects the search criteria from their corresponding GUI elements.
+        """
+        key = self.search_line.text()
 
         include_paths = self.file_line.text().split(',')
         include_paths = list(filter(lambda x: x, include_paths))
@@ -333,7 +357,6 @@ class SearchBarWidget(QWidget):
         exclude_paths = list(filter(lambda x: x, exclude_paths))
 
         return key, include_paths, include_exts, exclude_paths
-
 
 
 class SearchResultsWidget(QWidget):
@@ -365,6 +388,12 @@ class SearchResultsWidget(QWidget):
 
     def addHeader(self, key, include_paths, include_exts, exclude_paths):
         """Writes a header to the search results box that contains the inputs for that search
+
+        :param key: string to search for
+        :param include_paths: list of paths to include in the search
+        :param include_exts: list of file extensions in the form e.g. '.txt'
+                             may instead be `None` to search all files
+        :param exclude_paths: list of paths to exclude from the search
         """
         # button = QPushButton(search_string)
         label = QLabel("Search term: " + str(key) + 
@@ -448,4 +477,3 @@ class SearchResultsWidget(QWidget):
         """
         if self.editorValid(self.editor):
             fileButton.clicked.connect(lambda: self.openWithEditor(filePath))
-            

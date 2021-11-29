@@ -57,7 +57,7 @@ def search_file_for_string(path: str, key: str) -> list:
                     trimmed_array.append(word)
                 trimmed_line =  "..."+" ".join(trimmed_array)+"..."
                 key_instances.append((trimmed_line, i+1))
-    
+
     return key_instances
 
 
@@ -107,12 +107,16 @@ def foreach_file(func,
             raise FileNotFoundError(str(path))
 
     def is_excluded(path: Path, exclude_paths: list):
+        """Returns whether a file is excluded by `exclude_paths`
+        """
         for exclude_path in exclude_paths:
             if exclude_path in path.parents or exclude_path == path:
                 return True
         return False
 
     def is_extension_included(path: Path):
+        """Returns whether a file is included by `include_paths`
+        """
         if include_exts is not None:
             if path.suffix in include_exts:
                 return True
@@ -121,6 +125,8 @@ def foreach_file(func,
         return False
 
     def rec_helper(path: Path, exclude_paths: list):
+        """Recursively calls `func` on all matching descendant file paths.
+        """
         try:
             nonlocal terminate_early
             if terminate_early[0]:
@@ -138,7 +144,7 @@ def foreach_file(func,
                     func(str(path))
         except OSError as e:
             print(e, file=sys.stderr)
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             pass
         except Exception as e:
             print(type(e), e, file=sys.stderr)
@@ -162,8 +168,13 @@ def search_for_string(result_callback,
                       include_paths: list,
                       include_exts: list = None,
                       exclude_paths: list = None) -> None:
-    """
-    Search each line of every matching file for a string key
+    """Search each line of every matching file for a string key
+
+    :param result_callback: function to call with a search hit
+    :param finished_callback: function to call when the search is over.
+                              called even if the search is terminated early
+    :param terminate_search: single-element list containing a bool that says
+                             whether to terminate the search early
     :param key: the string to search through the files for
     :param include_paths: a list of paths of directories/files to be included
     :param include_exts: a list of file extensions to include
@@ -177,6 +188,8 @@ def search_for_string(result_callback,
     print(')')
 
     def search_file_func(path: str):
+        """This is called in foreach_file with every matching file path.
+        """
         output_instances = search_file_for_string(path, key)
         if output_instances:
             result_callback(path, output_instances)
