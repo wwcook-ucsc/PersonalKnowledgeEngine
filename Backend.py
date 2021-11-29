@@ -52,10 +52,7 @@ def search_file_for_string(path: str, key: str) -> list:
                 if len(split_line) == 1:
                     split_key = split_line
                 elif len(split_line) > 1:
-                    if key_value < len(split_line)-1:
-                        split_key = split_line[key_value:key_value+2]
-                    elif key_value == len(split_line) - 1:
-                        split_key = split_line[key_value:key_value+2]
+                    split_key = split_line[key_value:key_value+2]
                 for word in split_key:
                     trimmed_array.append(word)
                 trimmed_line =  "..."+" ".join(trimmed_array)+"..."
