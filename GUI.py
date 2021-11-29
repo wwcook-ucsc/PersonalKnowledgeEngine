@@ -225,17 +225,21 @@ class SearchBarWidget(QWidget):
         self.search_is_running = False
         self.terminate_search = [False]
 
+        #BUTTONS
+        #to start the search:
         self.startbutton = QPushButton('Start Search', self)
         self.startbutton.resize(180, 32)
         self.startbutton.move(195, 220)
         self.startbutton.clicked.connect(self.searchButtonClicked)
 
+        #to cancel the search (Hidden when Start button Displayed)
         self.cancelbutton = QPushButton('Cancel Search', self)
         self.cancelbutton.resize(180, 32)
         self.cancelbutton.move(195, 220)
         self.cancelbutton.clicked.connect(self.cancelButtonClicked)
         self.cancelbutton.hide()
 
+        #to clear the search history
         self.clearbutton = QPushButton('Clear Search', self)
         self.clearbutton.resize(180, 32)
         self.clearbutton.move(195, 245)
@@ -281,24 +285,17 @@ class SearchBarWidget(QWidget):
             include_exts = ['.' + ext for ext in include_exts]
 
             if key == '':
-                #self.app_widget.searchResults.clearResults()
                 self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'search bar is empty')
                 return
             elif len(include_paths) == 0:
-                #self.app_widget.searchResults.clearResults()
                 self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
                 self.app_widget.searchResults.addOneResult(
                     '!', 'no file paths included in search')
                 return
             elif len(include_exts) == 0:
-                #self.app_widget.searchResults.clearResults()
                 include_exts = None
-                # self.app_widget.searchResults.addHeader(key, include_paths, include_exts, exclude_paths)
-                # self.app_widget.searchResults.addOneResult(
-                #     '!', 'no file extensions included in search')
-                # return
 
             self.startbutton.hide()
             self.cancelbutton.show()

@@ -102,9 +102,6 @@ def foreach_file(func,
     include_paths = [Path(path).absolute() for path in include_paths]
     exclude_paths = [Path(path).absolute() for path in exclude_paths]
 
-    # print('include_paths:', include_paths)
-    # print('exclude_paths:', exclude_paths)
-
     for path in include_paths:
         if not path.exists():
             raise FileNotFoundError(str(path))
@@ -145,7 +142,6 @@ def foreach_file(func,
         except OSError as e:
             print(e, file=sys.stderr)
         except UnicodeDecodeError as e:
-            # print('{}: {}'.format(e, path))
             pass
         except Exception as e:
             print(type(e), e, file=sys.stderr)
