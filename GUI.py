@@ -111,8 +111,7 @@ class BackendWorker(QRunnable):
                 self.include_exts,
                 self.exclude_paths,
             )
-        except Exception as e:
-            del e  # prevent unused variable warning
+        except Exception:
             traceback.print_exc()
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
