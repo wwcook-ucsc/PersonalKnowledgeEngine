@@ -7,11 +7,11 @@ GUI Events call functions housed in this file; serves "GUI"
 
 # IMPORTS (remember to list installed packages in "requirements.txt")
 from pathlib import Path
-import ntpath
 import sys
 
 
 # GLOBAL HARDCODED VARS (no magic numbers; all caps for names)
+SEARCH_CONTEXT_WORDS = 11
 
 
 # DEFINITIONS (define all backend functions)
@@ -26,14 +26,9 @@ def search_file_for_string(path: str, key: str) -> list:
     key_instances = []
     bolded_key = "<b>"+key+"</b>"
     with open(path) as f:
-        # TODO: use mmap to allow searching across lines?
-        # TODO: note that regex can also be done with mmap
-        # TODO: https://realpython.com/python-mmap/
-        # BELOW COPY PASTED FROM INTERNET
-        # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
-        #     mmap_obj.find(b" the ")
         for i, line in enumerate(f):
             if key in line:  # if this line contains the key at least once
+                line = line.strip(" \n\r\t")
                 # Bold any instances of the key inside the line
                 key_value = 0
                 key_counter = 0
@@ -49,33 +44,15 @@ def search_file_for_string(path: str, key: str) -> list:
                         break
                     key_counter += 1
                 split_key = []
-                if len(split_line) == 1:
-                    split_key = split_line
-                elif len(split_line) > 1:
-                    split_key = split_line[key_value:key_value+2]
+                start = key_value - SEARCH_CONTEXT_WORDS // 2
+                end = start + SEARCH_CONTEXT_WORDS
+                split_key = split_line[max(0, start):end]
                 for word in split_key:
                     trimmed_array.append(word)
                 trimmed_line =  "..."+" ".join(trimmed_array)+"..."
                 key_instances.append((trimmed_line, i+1))
 
     return key_instances
-
-
-def search_files_for_string(paths: list, key: str) -> list:
-    """Searchs each line of a multiple files for a string key
-    :param paths: a list of the relative or absolute paths to the files to be
-                  searched
-    :param key: The string to search through the files for
-    :return: [ (path to file#1, [(line# of key occurrence #1, full line of keyoccurrence #1), ...] ) ...]
-            ^ a list of tuples: file path, and the list of occurrences in file path
-    """
-    file_hits = []
-
-    for file in paths:
-        output_instances = search_file_for_string(file, key)
-        if output_instances:
-            file_hits.append((file, output_instances))
-    return file_hits
 
 
 def foreach_file(func,
@@ -201,20 +178,3 @@ def search_for_string(result_callback,
                  exclude_paths)
 
     finished_callback()
-
-
-def convert_readable(file_hits):
-    """
-    Returns tuple of: list of file names, list of line where key was found
-    File names will be repeated in case of multiple hits in a file
-    :file_hits: output from search_for_string()
-    """
-    file_names = []
-    line_hits = []
-
-    for file_output in file_hits:
-        for line_info in file_output[1]:
-            line_hits.append(line_info[1])
-            file_names.append(ntpath.basename(file_output[0]))
-
-    return (file_names, line_hits)
